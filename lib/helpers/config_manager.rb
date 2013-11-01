@@ -16,7 +16,6 @@ class ConfigManager
     
     enctext = DataEncryption.unencrypt_data(ctext, ckeys[:configuration_key], CONFIG_SALT)
     cdata = YAML.load(enctext)    
-    puts "CONFIG DATA: #{cdata.inspect}"
     @config = cdata
     
   end  
@@ -26,7 +25,6 @@ class ConfigManager
   end
   
   def self.get_config
-    puts "Getting CONFIG!!!"
     @config_manager = ConfigManager.new
     @config_manager.configuration
   end
@@ -57,8 +55,18 @@ class ConfigManager
     
     f = File.open(key_filename, 'wb').write(yk)
     
-    puts "Psuedo random key has been written to RAM disk and will be removed on reboot. Make sure to copy this to final location: #{key_filename}
-         @reboot /bin/echo -e '#{yk.gsub("\n","\\n")}' > /dev/shm/.re_keys.objstore"
+    puts "
+*****************************************************************************
+Psuedo random key has been written to RAM disk and will be removed on reboot. 
+File: #{key_filename}
+
+Now copy the line below (starting @reboot) and paste it into the top of your 
+crontab by running: sudo crontab -e 
+
+@reboot /bin/echo -e '#{yk.gsub("\n","\\n")}' > /dev/shm/.re_keys.objstore
+    
+*****************************************************************************
+    "
     
     key
   end

@@ -5,8 +5,6 @@ module SecureApi
       params[:timestamp] = Time.new.strftime('%s%3N') unless params[:timestamp]
 
       secret = ClientSecret.find(params[:client]).secret
-
-      puts params, secret, action, controller
       generate_ottoken params, secret, action, controller, options
 
       options[:call_string]
@@ -40,8 +38,6 @@ module SecureApi
 
       uri_string = "#{secret}/#{controller}/#{action}?#{uri_set.join('&')}"    
       options[:uri_string] = uri_string # Allow testing of the result
-      puts "uri_string:#{uri_string}"
-      puts params, secret, action, controller
       ottoken = Digest::SHA256.hexdigest(uri_string)
       call_string = "/#{controller}/#{action}?#{uri_set_esc.join('&')}&ottoken=#{ottoken}"    
       options[:call_string] = call_string
@@ -59,13 +55,11 @@ module SecureApi
       throw :not_authorized_request, {:status=>Response::NOT_AUTHORIZED, :content_type=>Response::TEXT ,:content=>"Request has timed out"} if timedout
 
       sign_params = params.dup
-      puts "OTTTTT: #{sign_params.inspect}"
       sign_params.delete(:ottoken)
 
 
 
       otgen = generate_ottoken(sign_params, secret, action, controller, options)
-      puts otgen
       throw :not_authorized_request, {:status=>Response::NOT_AUTHORIZED, :content_type=>Response::TEXT ,:content=>"ottoken does not match"} unless (otgen == ottoken)    
 
       if options[:one_time_only]

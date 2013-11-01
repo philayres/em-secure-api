@@ -18,9 +18,9 @@ module SecureApi
     def self.start_serving port
       
       EM.run{
-        puts DateTime.now.to_s + " Start EventTracker with Ruby version #{RUBY_VERSION}\n"
+        puts DateTime.now.to_s + " Start em-server-api with Ruby version #{RUBY_VERSION} on port #{port}\n"
         EM.start_server '127.0.0.1', port, SecureApi::ApiServer
-        puts DateTime.now.to_s + " Done EventTracker\n"
+        puts DateTime.now.to_s + " Started em-server-api\n"
       }
 
     end
@@ -31,7 +31,6 @@ module SecureApi
     end
       
     def controller
-      puts @http_request_uri
       @http_request_uri.split('/').select{|s| s && !s.empty?}[0..-2].join('/')        
     end
       
@@ -48,7 +47,6 @@ module SecureApi
       from_string = ''
       from_string << @http_query_string if @http_query_string
       from_string << @http_post_content if @http_post_content
-      puts "FEOM: #{from_string}"
       if from_string.empty?
         @request_params = {} 
         return {}
@@ -90,7 +88,7 @@ module SecureApi
       def process_http_request
 
         
-        puts "New request: #{@http_request_method} #{@http_request_uri} #{@http_query_string} #{@http_post_content}"
+#        puts "New request: #{@http_request_method} #{@http_request_uri} #{@http_query_string} #{@http_post_content}"
         params
         begin
           
