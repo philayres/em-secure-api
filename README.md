@@ -1,7 +1,7 @@
 em-secure-api
 =============
 
-**em-secure-api** makes it easy to build REST / JSON APIs that are secure, fast and reliable.
+**em-secure-api** makes it easy to build REST / JSON APIs in Ruby that are secure, fast and reliable.
 
 em-secure-api automatically validates requests for authenticity, completeness and uniqueness, checks 
 client authorization and uses a simple routing configuration to connect the API to the implementation.
