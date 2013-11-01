@@ -26,9 +26,9 @@ Config = ConfigManager.get_config
 BaseDirs = Config[:directories]
 Log = Logger.start_logging('log')
 Api = SecureApi::Implementation
-Port = Config[:server][:port]
+Port = $force_port || Config[:server][:port]
 
 # Note: Database may not be required unless you are using the one time token checking
 Database = DbConnection.connect(Config[:database])
 
-SecureApi::ApiServer.start_serving Port unless $testing
+SecureApi::ApiServer.start_serving Port unless $testing || $configuration

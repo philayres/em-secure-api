@@ -268,8 +268,16 @@ run the EM server.The database user name is gen_api and password ja89jh in the i
 
 Then run the command below, which creates and encrypts the config.
 
-    ruby -r "./lib/helpers/config_manager.rb" -e "ConfigManager.create_database_config('utf8','mysql2','re_svc_records','gen_api','ja89jh',
-        { directories: {log: './log'}, server: {port: 5501}  } )"
+ruby -r "./lib/helpers/config_manager.rb" -e "ConfigManager.create_database_config('utf8','mysql2',
+         're_svc_records', # db name
+         'gen_api', #db username
+         'ja89jh',  #db password
+         { directories: {
+           log: './log' # log file location (relative to base directory, or full path)
+         }, 
+         server: {
+           port: 5501  # port to run the server on
+         }  } )"
 
 
 Then `sudo crontab -e`
@@ -278,6 +286,29 @@ copy the text returned by the above script into the following string and paste a
     @reboot /bin/echo -e 'text goes here' > /dev/shm/.re_keys.general_api
 
 This will replace your config on every reboot.
+
+Adding clients to the authorized list
+------------------------------------------------
+
+The clients table in the database holds the authorized list of clients. Simple enough. 
+But each has a shared secret that needs to be generated. 
+
+* Add a client 
+- checks and prevents an existing client being replaced, and therefore protects existing shared_secret
+- returns shared secret value
+
+    scripts/add_client.sh clientname
+
+* Replace (or add) a client
+- will overwrite and existing client
+- returns shared secret value
+
+    scripts/add_client.sh clientname true
+
+* Delete a client
+- note that the 'confirm' text is required after the clientname, otherwise the request is ignored.
+
+    scripts/delete_client.sh clientname confirm
 
 Testing
 ------------------
@@ -303,9 +334,23 @@ The Rspec tests require a server to be running. It assumes it is on localhost. R
 
     rspec
 
+Running multiple servers sharing the same configuration
+-------------------------------------------------------
+
+Since you'll probably want to run multiple servers on different ports, all providing the 
+same implementation and configuration file, just use the following argument when starting
+the server
+
+    ruby lib/em_server.rb --port=5555
+
+replace the port with your preferred port number.
+
+Note that when running multiple servers in the background using `eval` you'll need to track
+the process IDs yourself for killing the services.
 
 Creating an EM server as a Linux Upstart service
 ------------------
+
 
     description     "EM Server"
     start on (starting network-interface
