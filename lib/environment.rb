@@ -27,6 +27,7 @@ BaseDirs = Config[:directories]
 Log = Logger.start_logging('log')
 Api = SecureApi::Implementation
 Port = $force_port || Config[:server][:port]
+RequestTimeout = Config[:server][:request_timeout] || {__default: 30000}
 
 # Note: Database may not be required unless you are using the one time token checking
 Database = DbConnection.connect(Config[:database])

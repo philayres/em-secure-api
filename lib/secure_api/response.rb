@@ -8,6 +8,7 @@ module  SecureApi
     SUCCESS = 200
     OK = 200
     NOT_AUTHORIZED = 401
+    TOKEN_TIMEOUT = 401
     UNPROCESSABLE = 422
     NOT_FOUND = 404
     BAD_REQUEST = 400

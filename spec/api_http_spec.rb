@@ -112,5 +112,25 @@ describe '/controller1' do
     response.body.should == "{\"posted\":\"POSTED!\",\"opt1\":\"this\",\"opt2\":\"more\",\"opt3\":\"go for it\"}"
     response.code.to_i.should == SecureApi::Response::OK
   end
+
+  it "should test timeouts " do    
+    test_client = $test_client
+
+    opt = {}
+    
+    # Test status
+    params = {client: test_client}
+    uri = SecureApi::ApiAuth.generate_uri(params, 'status', 'admin', opt)        
+    response = Net::HTTP.get_response($baseurl, uri, $port)    
+    response.code.to_i.should == SecureApi::Response::OK
+    
+    # Test status with sleep in it
+    params = {client: test_client}
+    uri = SecureApi::ApiAuth.generate_uri(params, 'status', 'admin', opt)        
+    sleep 6
+    response = Net::HTTP.get_response($baseurl, uri, $port)        
+    puts response.code, response.body
+    response.code.to_i.should == SecureApi::Response::TOKEN_TIMEOUT 
+  end
 end
 

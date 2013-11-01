@@ -9,8 +9,8 @@ module SecureApi
 
       throw :not_authorized_request, {:status=>Response::NOT_AUTHORIZED, :content_type=>Response::TEXT ,:content=>"Incorrect parameters in validate_ottoken"} unless ottoken && timestamp && !ottoken.empty?
 
-      timedout =  (timestamp.to_i - current_timestamp.to_i).abs > max_time_difference(options)
-      throw :not_authorized_request, {:status=>Response::NOT_AUTHORIZED, :content_type=>Response::TEXT ,:content=>"Request has timed out"} if timedout
+      timedout =  (timestamp.to_i - current_timestamp.to_i).abs > max_time_difference(controller, action, options)
+      throw :not_authorized_request, {:status=>Response::TOKEN_TIMEOUT, :content_type=>Response::TEXT ,:content=>"Request has timed out"} if timedout
 
       sign_params = params.dup
       sign_params.delete(:ottoken)
@@ -53,9 +53,19 @@ module SecureApi
       Time.new.strftime('%s%3N')
     end
 
-    def self.max_time_difference options={}
-      #Timeout in milliseconds
-      options[:max_timeout] || 30000    
+    #Timeout in milliseconds
+    def self.max_time_difference controller, action, options={}
+      
+      # Step through most specific to least
+      if ::RequestTimeout[controller.to_sym]
+        to_action = ::RequestTimeout[controller.to_sym]["#{action}_#{options[:method]}".to_sym] 
+        to_controller = ::RequestTimeout[controller.to_sym][:__default]
+      end
+      to_default = ::RequestTimeout[:__default]
+      
+      mto = options[:max_timeout] || to_action || to_controller || to_default
+      
+      mto
     end
 
   end

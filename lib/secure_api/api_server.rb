@@ -31,7 +31,7 @@ module SecureApi
     end
       
     def controller
-      @http_request_uri.split('/').select{|s| s && !s.empty?}[0..-2].join('/')        
+      @http_request_uri.split('/').select{|s| s && !s.empty?}[0..-2].join('/')
     end
       
     def action
@@ -69,8 +69,8 @@ module SecureApi
       secret_obj = ClientSecret.find(params[:client])
       throw :not_authorized_request, {:status=>Response::NOT_AUTHORIZED, :content_type=>Response::TEXT ,:content=>"Client not recognized"} unless secret_obj
       secret = secret_obj.secret
-      
-      ApiAuth.validate_ottoken(params, secret, action, controller, :one_time_only=>true)        
+            
+      ApiAuth.validate_ottoken(params, secret, action, controller, :one_time_only=>true, :method=>method)        
     end
     
     def send_response res

@@ -35,6 +35,7 @@ The primary aims of em-secure-api are:
   * validate that the correct set of request parameters are provided
   * ensure that valid requests are not so old that they are invalid
   * attempt to secure configuration files to limit access to database credentials
+  * provide flexible configurations (such as token timeouts) for individual actions
 
 If you are looking just for simple, unsigned API processing, where you consider the 
 internal network to be your primary measure of security, then em-secure-api may be
@@ -81,7 +82,12 @@ To stop the server:
 Calling with a client
 ---------------------
 
-Run this to create a new client and shared secret
+A 'client' on em-secure-api can be a single server on a security conscious internal network, 
+or an authorized API user externally. So let's start by viewing the service from the client
+point of view, and seeing how it prevents requests being tampered with, duplicated, or being
+so old they are now irrelevant.
+
+To start, run a script to add a new client and shared secret to the database list of authorized clients.
 
     scripts/add_client.sh test_client-irb true
 
@@ -140,7 +146,16 @@ Recreate the request, but this time we'll "tamper" with a value
     puts res.code, res.body
     #---> OK and some different logic produced the JSON result
 
+And timeouts? How long before the request is considered too old to accept?
 
+    params = {client: 'test_client-irb'}
+    uri = SecureApi::ApiAuth.generate_uri params, 'status', 'admin', secret: secret
+    sleep 6
+    res = Net::HTTP.get_response 'localhost' , uri, 5501
+    puts res.code, res.body
+    #---> Nope, too old
+
+You should note that the timeout for the server can be set in the configuration, and defaults to 30 seconds.
 
 Implementing your API
 ------------------
@@ -352,7 +367,17 @@ ruby -r "./lib/helpers/config_manager.rb" -e "ConfigManager.create_database_conf
            log: './log' # log file location (relative to base directory, or full path)
          }, 
          server: {
-           port: 5501  # port to run the server on
+           port: 5501,  # port to run the server on
+           request_timeout: {  # max time between timestamp and current time (in ms)
+              __default: 30000,   # default for all requests
+              controller1: {
+                __default:10000,   # default for requests to controller1
+                action3_get: 60000  # override controller default for action3 get request
+              },
+              admin: {
+                status_get: 5000 # override server default for status get request
+              }
+           }           
          }  } )"
 
 
