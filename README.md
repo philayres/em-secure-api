@@ -1,6 +1,8 @@
-== em-secure-api
+em-secure-api
+=============
 
-=== Why em-secure-api?
+Why em-secure-api?
+------------------
 
 There are already Ruby frameworks that can help you build REST / JSON APIs running 
 on EventMachine. They leave a lot of the decisions about securing your service up
@@ -27,7 +29,8 @@ more than you need (since it adds a little work on the admin and client developm
 If you need to implement secure services in a secure environment, potentially on cloud servers,
 em-secure-api aims provides some trusted security approaches with minimal coding effort.
 
-=== Beta
+Beta
+------------------
 
 This software is still in early beta. Many things could change and it may break. Please add
 any issues and I'll try and get to them fast. 
@@ -35,7 +38,8 @@ any issues and I'll try and get to them fast.
 If you'd like to contribute, please let me know. Any new ideas, tests, sample implementations,
 and tests would be much appreciated!
 
-=== Installation
+Installation
+------------------
 
 This is not a gem, just a simple set of source that rides the EventMachine. Get the 
 source by download the package (or clone the Git repo locally). 
@@ -62,7 +66,8 @@ To stop the server:
 
 
 
-=== Getting started fast
+Getting started fast
+------------------
 
 An API call (a GET has been used for clarity) looks like:
 /controller1/action1?opt1=nnn&opt2=hhh&client=test_client&timestamp=234234&ottoken=23ah4sdf2e3443
@@ -102,7 +107,8 @@ Then all you have to do for implementation is:
       end
     end
 
-=== Routing requests
+Routing requests
+------------------
 
 Looking at the sample implementation in `lib/api_models/implementation.rb`, you'll see
 a method named `routes`
@@ -150,7 +156,8 @@ If a request meets the required parameters, then it will call a method in the im
 with the name that matches the controller and route key: e.g. `controller1_action1_get`. 
 Within this the developer can then call to any required business logic.
 
-=== Implementing requests
+Implementing requests
+------------------
 
 The following snippet shows how an action implementation might look:
 
@@ -173,7 +180,8 @@ This will end the routed request processing, while allowing any cleanup logic to
 All responses, either thrown or set_response will automatically generate JSON from 
 an appropriate Ruby structure if the content_type is set to Response::JSON. 
 
-=== Before and After
+Before and After
+------------------
 
 Each controller can optionally define a before and after handler, for a 
 method (_get, _post). 
@@ -199,7 +207,8 @@ actual route action, or the `after...`. Any throw will prevent additional proces
 of the request, and will immediately result is a return of the thrown hash, 
 irrespective of previously set_response values.
 
-=== Returning other content types
+Returning other content types
+------------------
 
 Perhaps you need to respond with a content type that is not text/plain or text/json. 
 That's fine, just set_response with content_type: 'some/type' and format your content
@@ -208,7 +217,8 @@ string appropriately.
 The 'after_controller' handlers described above are a great place to do this if you
 need a consistent format for your responses after all the business logic has been done.
 
-=== Securing the configuration
+Securing the configuration
+------------------
 
 The configuration file is stored locally. Since it contains your database credentials, 
 plus other possibly sensitive information, it is encrypted. The encryption key is 
@@ -224,7 +234,8 @@ or through some kind of 'port knocking' system. The aim is to make the key as
 transient as possible, to make it as hard as possible for an unauthorized user 
 to access the configuration and hence the database.
 
-=== Create database, file structure, etc
+Create database, file structure, etc
+------------------
 
 The database provides storage for the list of registered clients, and for logging of
 requests so that one-time use can be enforced.
@@ -245,7 +256,8 @@ for administrative client add / remove tasks, who would have full read/write acc
 This user would not be used for any direct API access (or we would limit this
 
 
-=== To setup the configuration file:
+To setup the configuration file:
+------------------
 
 The initial installation creates a database and user with default password. If you change the 
 username or password of this database user, you'll need to reconfigure the config.yml file.
@@ -267,7 +279,8 @@ copy the text returned by the above script into the following string and paste a
 
 This will replace your config on every reboot.
 
-=== Testing
+Testing
+------------------
 
 A set of tests exercise the backend authorization functionality and gently probe 
 a skeleton API implementation. The API implementation is, in 
@@ -291,7 +304,8 @@ The Rspec tests require a server to be running. It assumes it is on localhost. R
     rspec
 
 
-=== Creating an EM server as a Linux Upstart service
+Creating an EM server as a Linux Upstart service
+------------------
 
 description     "EM Server"
 start on (starting network-interface
@@ -302,7 +316,8 @@ exec {installation directory}/start_em_service_upstart.sh
 respawn
 
 
-=== License for em-secure-api
+License for em-secure-api
+------------------
 
 Copyright (c) 2013 Phil Ayres https://github.com/philayres
 
