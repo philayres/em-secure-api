@@ -1,10 +1,23 @@
 em-secure-api
 =============
 
+**em-secure-api** makes it easy to build REST / JSON APIs that are secure, fast and reliable.
+
+em-secure-api automatically validates requests for authenticity, completeness and uniqueness, checks 
+client authorization and uses a simple routing configuration to connect the API to the implementation.
+With the security and wiring addressed, a developer can focus on building the functionality that makes the API useful.
+
+And by building on EventMachine and the reactor pattern, API services built with em-secure-api can be made fast and scalable.
+Simply run multiple em-secure-api servers on separate ports and load balance with 
+[HAProxy](http://haproxy.1wt.eu/), 
+[Nginx](http://wiki.nginx.org/Main) or 
+[Apache2](http://httpd.apache.org/).
+
+
 Why em-secure-api?
 ------------------
 
-There are already Ruby frameworks that can help you build REST / JSON APIs running 
+There are already Ruby frameworks that can help you build APIs running 
 on [EventMachine](https://github.com/eventmachine/eventmachine). They leave a lot of the decisions about securing your service up
 to the developer, leading to a lot of extra work.
 
@@ -19,6 +32,7 @@ The primary aims of em-secure-api are:
   * enforce access by registered clients only
   * ensure only valid requests are received, with request signing
   * prevent duplicate requests from being processed, using a one-time token ('nonce')
+  * validate that the correct set of request parameters are provided
   * ensure that valid requests are not so old that they are invalid
   * attempt to secure configuration files to limit access to database credentials
 
@@ -124,6 +138,7 @@ Recreate the request, but this time we'll "tamper" with a value
     uri = URI("http://localhost:5501/controller2/action1")
     res = Net::HTTP.post_form(uri, post_form_params)
     puts res.code, res.body
+    #---> OK and some different logic produced the JSON result
 
 
 
