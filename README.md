@@ -5,7 +5,7 @@ Why em-secure-api?
 ------------------
 
 There are already Ruby frameworks that can help you build REST / JSON APIs running 
-on EventMachine. They leave a lot of the decisions about securing your service up
+on [EventMachine](https://github.com/eventmachine/eventmachine). They leave a lot of the decisions about securing your service up
 to the developer, leading to a lot of extra work.
 
 **em-secure-api** aims to take the API security decisions away from the developer, so 
