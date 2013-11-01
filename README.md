@@ -58,7 +58,7 @@ To run the server in the background for testing:
 
 To run your tests
 
-   rspec
+    rspec
 
 To stop the server:
 
@@ -307,13 +307,13 @@ The Rspec tests require a server to be running. It assumes it is on localhost. R
 Creating an EM server as a Linux Upstart service
 ------------------
 
-description     "EM Server"
-start on (starting network-interface
- or starting network-manager
- or starting networking)
-stop on runlevel [!2345]
-exec {installation directory}/start_em_service_upstart.sh
-respawn
+    description     "EM Server"
+    start on (starting network-interface
+     or starting network-manager
+     or starting networking)
+    stop on runlevel [!2345]
+    exec {installation directory}/start_em_service_upstart.sh
+    respawn
 
 
 License for em-secure-api
