@@ -64,9 +64,70 @@ To stop the server:
 
     kill $empid
 
+Calling with a client
+---------------------
+
+Run this to create a new client and shared secret
+
+    scripts/add_client.sh test_client-irb true
+
+Returns this:
+
+- Shared Secret:20a6250f1dc3f9e56cbbf4576016e517a066092d759402e9fa79dc0c64c0adfd
+
+Now try making some secure calls
+
+    require './lib/secure_api/api_auth_gen'
+    params = {username: 'phil', password: 'hello phil', opt1: 'this', client: 'test_client-irb'} 
+    action = 'action1'
+    controller = 'controller1'
+    secret = '20a6250f1dc3f9e56cbbf4576016e517a066092d759402e9fa79dc0c64c0adfd'
+    uri = SecureApi::ApiAuth.generate_uri params, action, controller, secret: secret
+
+Now make the call with your favorite HTTP library
+
+    require 'net/http'
+    res = Net::HTTP.get_response 'localhost' , uri, 5501
+    puts res.code, res.body
+    #---> OK
+
+Try reusing the same request
+
+    res = Net::HTTP.get_response 'localhost' , uri, 5501
+    puts res.code, res.body
+    #---> nope, not allowed
+
+Clear the added timestamp & recreate the request
+
+    params.delete :timestamp
+    uri = SecureApi::ApiAuth.generate_uri params, action, controller, secret: secret
+    res = Net::HTTP.get_response 'localhost' , uri, 5501
+    puts res.code, res.body
+    #---> OK
+
+Recreate the request, but this time we'll "tamper" with a value
+
+    params.delete :timestamp
+    uri = SecureApi::ApiAuth.generate_uri params, action, controller, secret: secret
+    uri.gsub! "opt1=this", "opt1=th!s"
+    res = Net::HTTP.get_response 'localhost' , uri, 5501
+    puts res.code, res.body
+    #---> You can't cheat this
+
+ How about posting?
+
+    # A different set of parameters
+    params = {username: 'phil', password: 'hello phil', opt1: 'this', opt2: 'more', opt3: 'go for it', client: 'test_client-irb'}
+    # Generate the 'form' to post (to a different controller this time)
+    post_form_params = SecureApi::ApiAuth.generate_form(params, 'action1', 'controller2', secret: secret)
+    
+    uri = URI("http://localhost:5501/controller2/action1")
+    res = Net::HTTP.post_form(uri, post_form_params)
+    puts res.code, res.body
 
 
-Getting started fast
+
+Implementing your API
 ------------------
 
 An API call (a GET has been used for clarity) looks like:
