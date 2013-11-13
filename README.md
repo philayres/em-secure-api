@@ -158,7 +158,7 @@ The One-Time Secure Token
 ------------------
 
 An API call (a GET has been used for clarity) looks like any standard call
-/controller1/action1?opt1=nnn&opt2=hhh&client=test_client
+/controller1/action1?opt1=nnn&opt2=hhh
 
 Parameters opt1 and opt2 represent your actual API parameters, which are configurable,
 and drive your business logic.
@@ -362,7 +362,7 @@ run the EM server.The database user name is gen_api and password ja89jh in the i
 
 Then run the command below, which creates and encrypts the config.
 
-ruby -r "./lib/helpers/config_manager.rb" -e "ConfigManager.create_database_config('utf8','mysql2',
+      ruby -r "./lib/helpers/config_manager.rb" -e "ConfigManager.create_database_config('utf8','mysql2',
          're_svc_records', # db name
          'gen_api', #db username
          'ja89jh',  #db password
@@ -398,21 +398,21 @@ The clients table in the database holds the authorized list of clients. Simple e
 But each has a shared secret that needs to be generated. 
 
 * Add a client 
-- checks and prevents an existing client being replaced, and therefore protects existing shared_secret
-- returns shared secret value
+  - checks and prevents an existing client being replaced, and therefore protects existing shared_secret
+  - returns shared secret value
 
-    scripts/add_client.sh clientname
+`scripts/add_client.sh clientname`
 
 * Replace (or add) a client
-- will overwrite and existing client
-- returns shared secret value
+  - will overwrite and existing client
+  - returns shared secret value
 
-    scripts/add_client.sh clientname true
+`scripts/add_client.sh clientname true`
 
 * Delete a client
-- note that the 'confirm' text is required after the clientname, otherwise the request is ignored.
+  - note that the 'confirm' text is required after the clientname, otherwise the request is ignored.
 
-    scripts/delete_client.sh clientname confirm
+`scripts/delete_client.sh clientname confirm`
 
 Testing
 ------------------
