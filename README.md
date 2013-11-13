@@ -97,81 +97,84 @@ Returns this:
 
 Now try making some secure calls
 
-    require './lib/secure_api/api_auth_gen'
-    params = {username: 'phil', password: 'hello phil', opt1: 'this', client: 'test_client-irb'} 
+    # Get things set up 
+    require './lib/client/requester'    
+    server = 'http://localhost:5501'
+    client = 'test_client-irb'
+    secret = '20a6250f1dc3f9e56cbbf4576016e517a066092d759402e9fa79dc0c64c0adfd'
+    
+    @requester = ReSvcClient::Requester.new server, client, secret
+
+    # Now start making calls
+    params = {username: 'phil', password: 'hello phil', opt1: 'this'} 
     action = 'action1'
     controller = 'controller1'
-    secret = '20a6250f1dc3f9e56cbbf4576016e517a066092d759402e9fa79dc0c64c0adfd'
-    uri = SecureApi::ApiAuth.generate_uri params, action, controller, secret: secret
 
-Now make the call with your favorite HTTP library
-
-    require 'net/http'
-    res = Net::HTTP.get_response 'localhost' , uri, 5501
-    puts res.code, res.body
-    #---> OK
+    @requester.make_request :get, params, action, controller    
+    
+    # Note that action can be replaced with a path
+    path = '/contoller1/action1'
+    @requester.make_request :get, params, path
+    puts @requester.body, @requester.code, @requester.data 
 
 Try reusing the same request
-
-    res = Net::HTTP.get_response 'localhost' , uri, 5501
-    puts res.code, res.body
-    #---> nope, not allowed
-
-Clear the added timestamp & recreate the request
-
-    params.delete :timestamp
-    uri = SecureApi::ApiAuth.generate_uri params, action, controller, secret: secret
-    res = Net::HTTP.get_response 'localhost' , uri, 5501
-    puts res.code, res.body
+    
+    # We'll use an option to force the timestamp we send, so it can be reused
+    options[:force_timestamp] = @requester.millisec_timestamp
+    @requester.make_request :get, params, path, nil, options
+    puts @requester.code == 200
     #---> OK
+    @requester.make_request :get, params, path, nil, options
+    puts @requester.code != 200
+    #---> nope, not allowed
 
 Recreate the request, but this time we'll "tamper" with a value
 
-    params.delete :timestamp
-    uri = SecureApi::ApiAuth.generate_uri params, action, controller, secret: secret
-    uri.gsub! "opt1=this", "opt1=th!s"
-    res = Net::HTTP.get_response 'localhost' , uri, 5501
-    puts res.code, res.body
-    #---> You can't cheat this
+    # adding a parameter in the url has the same effect as changing a param hash entry    
+    @requester.make_request :get, params, path + '?nope=bad'
+    puts @requester.code != 200
+    #---> not authorized
 
  How about posting?
 
     # A different set of parameters
-    params = {username: 'phil', password: 'hello phil', opt1: 'this', opt2: 'more', opt3: 'go for it', client: 'test_client-irb'}
-    # Generate the 'form' to post (to a different controller this time)
-    post_form_params = SecureApi::ApiAuth.generate_form(params, 'action1', 'controller2', secret: secret)
-    
-    uri = URI("http://localhost:5501/controller2/action1")
-    res = Net::HTTP.post_form(uri, post_form_params)
-    puts res.code, res.body
-    #---> OK and some different logic produced the JSON result
+    params = {username: 'phil', password: 'hello phil', opt1: 'this', opt2: 'more', opt3: 'go for it'}
+    path = '/controller2/action1'
+    # Its as easy as changing the method symbol
+    @requester.make_request :post, params, path
+    puts @requester.code, @requester.data
+    #---> OK and some different logic produces a JSON result in @requester.data
 
 And timeouts? How long before the request is considered too old to accept?
 
-    params = {client: 'test_client-irb'}
-    uri = SecureApi::ApiAuth.generate_uri params, 'status', 'admin', secret: secret
-    sleep 6
-    res = Net::HTTP.get_response 'localhost' , uri, 5501
-    puts res.code, res.body
+    options[:force_timestamp] = @requester.millisec_timestamp - 1000000
+    @requester.make_request :post, params, path, nil, options
+    puts @requester.code, @requester.body
     #---> Nope, too old
 
 You should note that the timeout for the server can be set in the configuration, and defaults to 30 seconds.
 
-Implementing your API
+The One-Time Secure Token
 ------------------
 
-An API call (a GET has been used for clarity) looks like:
-/controller1/action1?opt1=nnn&opt2=hhh&client=test_client&timestamp=234234&ottoken=23ah4sdf2e3443
+An API call (a GET has been used for clarity) looks like any standard call
+/controller1/action1?opt1=nnn&opt2=hhh&client=test_client
 
 Parameters opt1 and opt2 represent your actual API parameters, which are configurable,
 and drive your business logic.
 
-The client, timestamp and ottoken handle the security, authenticity and uniqueness of
-requests, and a couple of Ruby methods are provided to create them automatically, so 
-you don't have to worry about signing requests on the client or validating them on 
-the server.
+Rather than mangling the URL, we create a special 'X-Nonce' HTTP header for all requests, which
+handles the security, authenticity and uniqueness of
+requests. The Ruby @requester.make_request method creates them automatically and the server checks them automatically. 
 
-Then all you have to do for implementation is:
+The code for the creation of the one-time secure token is easy to translate to other
+languages too.
+
+
+Implementing your API
+------------------
+
+The server provides a simple routes hash that makes it easy to route and validate requests.
 
 ** Setup your routes and rules for required parameters **
 
@@ -226,7 +229,7 @@ a method named `routes`
     end
 
 Simply, this defines how requests are routed to the actual implementation. Using the
-example API above, you'll see the request path `/controller1/action1?` corresponds to
+example API above, you'll see the request path `/controller1/action1` corresponds to
 the first hash key 'controller1' and within it, the key for an actual route,
 'action1_get', since this is a GET request.
 
@@ -316,7 +319,7 @@ plus other possibly sensitive information, it is encrypted. The encryption key i
 stored in a memory-based file system (/dev/shm), available by default on many 
 Linux installations. 
 
-The aim is that by keeping the key on temporary storage, it will not be less simple 
+The aim is that by keeping the key on temporary storage, it will be less simple 
 for an unauthorized user who made it onto your server to find and compromise the data. 
 
 The key is then used only at server startup to unencrypt the configuration file. In 
