@@ -36,62 +36,60 @@ describe SecureApi::ApiAuth do
     # clear up first
     SecureApi::ClientSecret.delete('test_clien')
     secret = SecureApi::ClientSecret.find(test_client).secret
+    method = 'GET'
     
     # Check correct creation of an ottoken string with character encodings
     t = Time.new.strftime('%s%3N')
-    params = {b: 123, c: 'abc', adg: 'hello phil', rand: 'this & this = a question?', timestamp: t, client: test_client}
-    ot = SecureApi::ApiAuth.generate_ottoken(params, secret, 'do', 'some_controller', res)
-    expected_response = secret + '/some_controller/do?adg=hello phil&b=123&c=abc&client='+test_client+'&rand=this %26 this %3D a question%3F&timestamp=' + t
-    res[:uri_string].should == expected_response
+    params = {b: 123, c: 'abc', adg: 'hello phil', rand: 'this & this = a question?'}
+    ot = SecureApi::ApiAuth.generate_auth_header_for_action(method, params, test_client,  secret, 'do', 'some_controller', res)    
+    ot['X-Nonce'].should_not be_nil
     
-    # Check result is repeatable
-    ot2 = SecureApi::ApiAuth.generate_ottoken(params, secret, 'do', 'some_controller', res)
-    ot.should == ot2
     
     # Check a timelag produces a different ottoken result
     sleep(0.1)
     t2 = Time.new.strftime('%s%3N')
-    params[:timestamp] = t2    
-    ot_test = SecureApi::ApiAuth.generate_ottoken(params, secret, 'do', 'some_controller', res)
-    puts res[:uri_string]
-    puts ot_test    
-    res[:uri_string].should_not == expected_response
+    opt = {force_timestamp: t2}
+    ot_test = SecureApi::ApiAuth.generate_auth_header_for_action(method, params, test_client, secret, 'do', 'some_controller', opt)
+    
+    ot['X-Nonce'].should_not == ot_test['X-Nonce']
     
     # Check timeout allows some lag before rejecting the timeout
     sleep(1.0)
-    params[:ottoken] = ot_test
-    otres = SecureApi::ApiAuth.validate_ottoken(params, secret, 'do', 'some_controller', res)
-    puts res[:uri_string]
+    headers = ot_test
+    
+    otres = SecureApi::ApiAuth.validate_ottoken(method, headers, params, 'do', 'some_controller', opt)
     otres.should == true
 
     # Check changed action breaks validation
-    expect { otres = SecureApi::ApiAuth.validate_ottoken(params, secret, 'done', 'some_controller', res) }.to raise_error
+    expect { otres = SecureApi::ApiAuth.validate_ottoken(method, headers, params, 'done', 'some_controller', opt) }.to raise_error
     
 
-    # Check unknown client prevents access
-    params[:client]='test_clien'
-    ot_test = SecureApi::ApiAuth.generate_ottoken(params, secret, 'do', 'some_controller', res)    
-    expect { otres = SecureApi::ApiAuth.validate_ottoken(params, secret, 'do', 'some_controller', res)  }.to raise_error
+    # Check unknown client prevents access    
+    ot_test = SecureApi::ApiAuth.generate_auth_header_for_action(method, params, 'test_clien', secret, 'do', 'some_controller', res)    
+    expect { otres = SecureApi::ApiAuth.validate_ottoken(method, ot_test, params, 'do', 'some_controller', res)  }.to raise_error
     
     
     # Check ottoken timeout with very short max timeout (100ms)
     res[:max_timeout]=100    
-    expect {otres = SecureApi::ApiAuth.validate_ottoken(params, secret, 'do', 'some_controller', res) }.to raise_error
+    expect {otres = SecureApi::ApiAuth.validate_ottoken(method, ot_test, params, 'do', 'some_controller', res) }.to raise_error
 
     # Now test adding the client
     secret = SecureApi::ClientSecret.create('test_clien')
     res = {}
-    params = {b: 123, c: 'abc', adg: 'hello phil', rand: 'this & this = a question?', timestamp: t, client: 'test_clien'}
-    params[:ottoken] = SecureApi::ApiAuth.generate_ottoken(params, secret, 'do', 'some_controller', res)    
+    params = {b: 123, c: 'abc', adg: 'hello phil', rand: 'this & this = a question?'}
+    headers =  SecureApi::ApiAuth.generate_auth_header_for_action(method, params, 'test_clien', secret, 'do', 'some_controller', res)    
     
     # Test finding the new client secret and validating
-    secret = SecureApi::ClientSecret.find('test_clien').secret    
-    otres = SecureApi::ApiAuth.validate_ottoken(params, secret, 'do', 'some_controller', res) 
+    secret_new = SecureApi::ClientSecret.find('test_clien').secret    
+    
+    secret_new.should == secret
+    
+    otres = SecureApi::ApiAuth.validate_ottoken(method, headers, params, 'do', 'some_controller', res) 
     
     # Now check for one time only validation
-    otres = SecureApi::ApiAuth.validate_ottoken(params, secret, 'do', 'some_controller', one_time_only: true) 
+    otres = SecureApi::ApiAuth.validate_ottoken(method, headers, params, 'do', 'some_controller', one_time_only: true) 
     
-    expect {otres = SecureApi::ApiAuth.validate_ottoken(params, secret, 'do', 'some_controller', one_time_only: true) }.to raise_error
+    expect {otres = SecureApi::ApiAuth.validate_ottoken(method, headers, params,  'do', 'some_controller', one_time_only: true) }.to raise_error
     
     SecureApi::ClientSecret.delete('test_clien')    
   end

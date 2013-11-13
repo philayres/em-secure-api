@@ -41,6 +41,17 @@ module SecureApi
     def method
       @http_request_method.downcase.to_sym
     end
+    
+    def headers
+      
+      res = @http_headers.split("\0")
+      hs = {}
+      res.each do |h|
+        hv = h.split(': ',2)
+        hs[hv[0]] = hv[1] unless hv[0].nil?
+      end
+      hs
+    end
 
     def params              
       return @request_params if @request_params      
@@ -66,11 +77,11 @@ module SecureApi
 
     def authorize_request
 
-      secret_obj = ClientSecret.find(params[:client])
-      throw :not_authorized_request, {:status=>Response::NOT_AUTHORIZED, :content_type=>Response::TEXT ,:content=>"Client not recognized"} unless secret_obj
-      secret = secret_obj.secret
+      #secret_obj = ClientSecret.find(params[:client])
+      #throw :not_authorized_request, {:status=>Response::NOT_AUTHORIZED, :content_type=>Response::TEXT ,:content=>"Client not recognized"} unless secret_obj
+      #secret = secret_obj.secret
             
-      ApiAuth.validate_ottoken(params, secret, action, controller, :one_time_only=>true, :method=>method)        
+      ApiAuth.validate_ottoken(method, headers, params, action, controller, :one_time_only=>true, :method=>method)        
     end
     
     def send_response res

@@ -17,7 +17,7 @@ module SecureApi
       end
 
       key = generate_secret client    
-      Database.query("INSERT INTO clients (name, shared_secret, client_type, created_at) values ('#{Database.escape(client)}', '#{Database.escape(key)}', 1, '#{DbConnection.at_value}')")
+      Database.query("INSERT INTO clients (name, shared_secret, client_type, created_at) values ('#{Database.escape(client)}', '#{Database.escape(key)}', 1, '#{Database.at_value}')")
 
       cached_secrets.delete(client)    
       key

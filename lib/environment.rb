@@ -10,6 +10,7 @@ require 'base64'
 require 'cgi'
 require 'date'
 require 'json'
+require 'connection_pool'
 Dir[File.dirname('./initializers') + '/*.rb'].each {|file| require file }
 require "#{REQ}/secure_api/response"
 require "#{REQ}/secure_api/api_server"
@@ -29,7 +30,6 @@ Api = SecureApi::Implementation
 Port = $force_port || Config[:server][:port]
 RequestTimeout = Config[:server][:request_timeout] || {__default: 30000}
 
-# Note: Database may not be required unless you are using the one time token checking
-Database = DbConnection.connect(Config[:database])
+DBP = ConnectionPool.new(:size => 10, :timeout => 5) { Database::DbConnection.connect(::Config[:database]) }
 
 SecureApi::ApiServer.start_serving Port unless $testing || $configuration
