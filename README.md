@@ -391,6 +391,18 @@ copy the text returned by the above script into the following string and paste a
 
 This will replace your config on every reboot.
 
+
+For Ubuntu, and possibly others that don't recognize @reboot in the crontab, create `/etc/init.d/reweb`
+
+    /bin/echo -e '#{yk.gsub("\n","\\n")}' > /dev/shm/.re_keys.objstore
+    
+Then run the command 
+
+    sudo update-rc.d reweb defaults
+
+The short config script will then run as a service on every startup.
+
+
 Adding clients to the authorized list
 ------------------------------------------------
 
