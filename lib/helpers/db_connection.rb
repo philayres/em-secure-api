@@ -17,12 +17,26 @@ module Database
       DbConnection.new(config).connection
     end
 
+    
+    
+    def self.create_new_pool
+      ConnectionPool.new(size: 10, timeout: 5) { connect(::Config[:database]) }
+  end
+  
   end
   
   def self.query query
-    DBP.with do |db|
+    begin
+      DBP[:pool].with do |db|      
       db.query query
     end
+    rescue Mysql2::Error => e
+      if e=='closed MySQL connection'
+        DBP[:pool].shutdown rescue nil
+        DBP[:pool] = create_new_pool
+  end
+    end
+  
   end
   
   def self.escape str

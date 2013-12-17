@@ -37,7 +37,7 @@ module SecureApi
 
       c = ClientSecret.new      
       results = Database.query("SELECT shared_secret FROM clients WHERE name='#{Database.escape(client)}' LIMIT 1")    
-      return nil unless results.count == 1
+      return nil unless results && results.count == 1
 
       c.secret = results.first['shared_secret']      
       #cached_secrets[client] = c

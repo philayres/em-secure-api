@@ -60,10 +60,14 @@ class ConfigManager
 Psuedo random key has been written to RAM disk and will be removed on reboot. 
 File: #{key_filename}
 
-Now copy the line below (starting @reboot) and paste it into the top of your 
-crontab by running: sudo crontab -e 
+Now copy the line below and paste it into the top of a new file
+by running: sudo nano /etc/init.d/reweb
 
-@reboot /bin/echo -e '#{yk.gsub("\n","\\n")}' > /dev/shm/.re_keys.objstore
+/bin/echo -e '#{yk.gsub("\n","\\n")}' > /dev/shm/.re_keys.objstore
+    
+Then run the command
+
+sudo update-rc.d reweb defaults
     
 *****************************************************************************
     "

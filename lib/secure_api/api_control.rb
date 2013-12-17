@@ -2,14 +2,17 @@ module SecureApi
   class ApiControl
 
     def initialize controller, action, method, params
-      
+      Log.info "Request: controller:#{controller} action:#{action} method:#{method}"
+      Log.info "Parameters: #{params.inspect}"
       c = routes[controller.to_sym]
       throw :not_initialized, {:status=>Response::NOT_FOUND, :content_type=>Response::TEXT ,:content=>"controller (#{controller}) not found"} unless c
       a = c["#{action}_#{method}".to_sym]
       throw :not_initialized, {:status=>Response::NOT_FOUND, :content_type=>Response::TEXT ,:content=>"action_method (#{action}_#{method}) not found in controller #{controller}"} unless a
+      @before_all_handler = "before_#{controller}_all".to_sym
       @before_handler = "before_#{controller}_#{method}".to_sym
       @handler = "#{controller}_#{action}_#{method}".to_sym
       @after_handler = "after_#{controller}_#{method}".to_sym
+      @after_all_handler = "after_#{controller}_all".to_sym
       @controller = controller.to_sym
       @action = action.to_sym
       @method = method.to_sym
@@ -29,10 +32,20 @@ module SecureApi
       {}
     end
     
+    def prevent_after_handlers
+      @prevent_after_handlers = false
+    end
+    
     def do_request
+      send @before_all_handler if respond_to? @before_all_handler
       send @before_handler if respond_to? @before_handler
       send @handler
-      send @after_handler if respond_to? @after_handler
+      
+      unless @prevent_after_handlers        
+        send @after_handler if respond_to? @after_handler
+        send @after_all_handler if respond_to? @after_all_handler      
+      end
+      
       response
     end
     

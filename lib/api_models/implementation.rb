@@ -67,13 +67,13 @@ module SecureApi
 
     def before_controller2_get
       if params[:username] != 'phil'
-        throw :not_processed_request, {:status=>Response::NOT_FOUND, :content_type=>Response::TEXT ,:content=>"no such record"}
+        throw :not_processed_request, {status: Response::NOT_FOUND, content_type: Response::TEXT , content: "no such record"}
       end      
     end
 
-    def after_controller2_get
-      if params[:password] == 'not secret'
-        set_response status: Response::BAD_REQUEST, content_type: Response::TEXT, content: 'This password is not secret.'
+    def after_controller2_all
+      if params[:password] == 'not secret'        
+        throw :request_exit, {status: Response::BAD_REQUEST, content_type: Response::TEXT, content: 'This password is not secret.'}
       end      
     end
     

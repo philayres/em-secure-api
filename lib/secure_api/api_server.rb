@@ -105,26 +105,28 @@ module SecureApi
           
           @response = EM::DelegatedHttpResponse.new(self)
 
-          
-          res = catch :not_initialized do
-            api = Api.new controller, action, method, params
+          res = catch :request_exit do
+            res = catch :not_initialized do
+              api = Api.new controller, action, method, params
 
-            res = catch :not_authorized_request do
-              authorize_request
+              res = catch :not_authorized_request do
+                authorize_request
 
 
-              api.before_handler
-              res = catch :not_processed_request do
-                res = api.do_request
+                api.before_handler
+                res = catch :not_processed_request do
+                  res = api.do_request
+                end
+
+                api.after_handler
+
+                res
               end
 
-              api.after_handler
-
-              res
             end
-            
           end
           
+          Log.info "Response: #{res.inspect}"
           send_response res        
 
         rescue => e

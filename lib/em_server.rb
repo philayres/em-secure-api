@@ -5,6 +5,8 @@ if ARGV[0]
     $configuration = true
   end
 end
-  
+
+KB_BASE_DIR = File.expand_path('.')
+
 REQ = File.expand_path('./lib')
 require "#{REQ}/environment"
