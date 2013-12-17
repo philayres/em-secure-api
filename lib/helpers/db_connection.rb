@@ -28,13 +28,18 @@ module Database
   def self.query query
     begin
       DBP[:pool].with do |db|      
-      db.query query
-    end
+        return db.query query
+      end
     rescue Mysql2::Error => e
       if e=='closed MySQL connection'
+        Log.info "SQL Connection was closed. Restarting"
         DBP[:pool].shutdown rescue nil
         DBP[:pool] = create_new_pool
-  end
+        return nil
+      else
+        Log.info "SQL Connection error unknown: #{e.inspect}"
+        return nil
+      end
     end
   
   end
