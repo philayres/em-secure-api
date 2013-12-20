@@ -2,6 +2,9 @@ $baseurl = 'localhost'
 $port = Port
 $server = "http://#{$baseurl}:#{$port}"
 
+UID = "test_user#{rand(1000000000)}@test.repse.com"
+UID2 = "specialtester#{rand(1000000000)}@test.repse.com"
+
 require './lib/client/requester'
 
 describe '/admin#status' do
@@ -22,7 +25,7 @@ describe '/admin#status' do
   
 end
 
-describe '/controller1' do
+describe '/identities' do
   before(:all) do
     
     # clear up first
@@ -38,114 +41,148 @@ describe '/controller1' do
     @requester.code.should == SecureApi::Response::OK   
   end
   
-  it "should check for a tampered request " do    
-    params = {}
-    # Adding a parameter in the URL acts the same as 'tampering' with the request, since
-    # the path is not used to calculate the sent ottoken header in make_request
-    path = '/admin/status?invalid_to_include=123'
+  it "should create a user identity " do    
+    params = {user_id: UID, email: UID, name_first: "testfn", name_last: "testln", org: 'test co', dept: 'finance', city: 'Boston', state: 'Massachusetts', country: 'US'}
+    path = '/identities/create'
+    @requester.make_request :post, params, path
+    @requester.code.should == SecureApi::Response::OK
+    puts @requester.body    
+  end
+
+  it "should find a user identity " do    
+    params = {user_id: UID}
+    path = '/identities/find'
     @requester.make_request :get, params, path
-    @requester.code.should == SecureApi::Response::NOT_AUTHORIZED
-    @requester.body.should == 'ottoken does not match'
-        
+    @requester.code.should == SecureApi::Response::OK
+    puts JSON.parse @requester.body
+  end  
+  
+  it "should update a user identity " do    
+    params = {user_id: UID, email: "new_#{UID}", name_last: 'newln'}
+    path = '/identities/update'
+    Log.info "TESTING UPDATE"
+    @requester.make_request :post, params, path
+    @requester.code.should == SecureApi::Response::OK
+    j =  JSON.parse @requester.body
+    
+    Log.info "RESULT FROM TEST: #{j}"
+    
+    j['email'].should == "new_#{UID}"
+    j['name_last'].should == 'newln'        
+    j['name_first'].should == 'testfn'
+    
+  end  
+
+  it "should find a user identity again" do    
+    params = {user_id: UID}
+    path = '/identities/find'
+    @requester.make_request :get, params, path
+    @requester.code.should == SecureApi::Response::OK
+    puts JSON.parse @requester.body
+  end  
+  
+  it "should generate keys" do    
+    params = {user_id: UID, password: 'test password!'}
+    path = '/identities/generate_keys'
+    @requester.make_request :post, params, path
+    @requester.code.should == SecureApi::Response::OK
+    j =  JSON.parse @requester.body
+    
+    #j['public_key'].should_not be_nil
+   
+  end   
+  
+  it "should s/mime some data" do
+    data = "This is some data.\nThis should be a nice signed document."
+    subject = 'Signed document 1'
+    params = {user_id: UID, password: 'test password!', data: data, subject: subject, mime: 'text/plain'}
+    path = '/content/smime_data'
+    @requester.make_request :post, params, path
+    @requester.code.should == SecureApi::Response::OK
+    j =  JSON.parse @requester.body
+    j['smime'].should_not be_nil
+    puts j['smime']
+    
+    File.write '/tmp/smime-1.p7m',j['smime']
+  end  
+  
+  it "should return a certificate" do
+    params = {user_id: UID}
+    path = '/identities/certificate'
+    @requester.make_request :get, params, path
+    @requester.code.should == SecureApi::Response::OK
+    j =  JSON.parse @requester.body
+    j['certificate'].should_not be_nil
+    
+    
+    File.write '/tmp/cert-out1.pem',j['certificate']
   end
   
+  it "should regenerate keys" do    
+    params = {user_id: UID, password: 'test password!'}
+    path = '/identities/generate_keys'
+    @requester.make_request :post, params, path
+    @requester.code.should == SecureApi::Response::OK
+    j =  JSON.parse @requester.body
+       
+  end     
   
-  it "should exercise controller1 successfully" do    
-    
-    params = {username: 'phil', password: 'hello phil', opt1: 'this'}
-    
-    path = '/controller1/action1'
-    options = {}
-    options[:force_timestamp] = @requester.millisec_timestamp    
-    
-    @requester.make_request :get, params, path, nil, options
-    @requester.code.should == SecureApi::Response::OK      
-    @requester.body.should == "{\"opt1\":\"THIS\",\"opt2\":null}"
-    @requester.data['opt1'].should == 'THIS'
-        
-    # Check for reused ottoken
-    @requester.make_request :get, params, path, nil, options    
-    @requester.body.should == "ottoken already used"
-    @requester.code.should == SecureApi::Response::CONFLICT
-
-    # Check for old ottoken
-
-    options[:force_timestamp] = @requester.millisec_timestamp - 100000
-    @requester.make_request :get, params, path, nil, options    
-    @requester.body.should == "Request has timed out"
-    @requester.code.should == SecureApi::Response::NOT_AUTHORIZED
-    
-    # Check for reused overridden password in the route definition
-    path = '/controller1/action2'
-    params = {username: 'phil', opt1: 'this', opt2: 'that'}
-    
-    @requester.make_request :get, params, path, nil
-    @requester.body.should == "{\"opt1\":\"this\",\"opt2\":\"that\",\"pw\":null}"
+  it "should s/mime some data with regenerated keys" do
+    data = "This is some data.\nThis should be a nice signed document."
+    subject = 'Signed document 2'
+    params = {user_id: UID, password: 'test password!', data: data, subject: subject, mime: 'text/plain'}
+    path = '/content/smime_data'
+    @requester.make_request :post, params, path
     @requester.code.should == SecureApi::Response::OK
-        
-    # Check for reused overridden password in the route definition
-    params = {username: 'phil', opt1: 'this', opt2: 'that', password: 'hey there'}
-    @requester.make_request :get, params, path, nil
-    @requester.body.should == "{\"opt1\":\"this\",\"opt2\":\"that\",\"pw\":\"hey there\"}"
-    @requester.code.should == SecureApi::Response::OK
-
+    j =  JSON.parse @requester.body
+    j['smime'].should_not be_nil
+    puts j['smime']
     
-    # Check action not found
-    path = '/controller1/action2a'
-    params = {username: 'phil', opt1: 'this', opt2: 'that', password: 'hey there'}
-    @requester.make_request :get, params, path, nil    
-    @requester.code.should == SecureApi::Response::NOT_FOUND
+    File.write '/tmp/smime-2.p7m',j['smime']
   end
-
-
-  it "should exercise controller2 successfully" do    
-
-    opt = {}
-    
-    # Test action2 processes correctly with its before and after handlers
-    path = '/controller2/action2'
-    params = {username: 'phil', password: 'hello phil', opt1: 'this', opt2: 'more'}
-    
-    @requester.make_request :get, params, path, nil    
-    @requester.body.should == "{\"opt1\":\"this\",\"opt2\":\"more\",\"username\":\"phil\"}"
+  
+  it "should s/mime some more data with regenerated keys" do
+    data = "This is some more different data.\nThis should be a nice signed document."
+    subject = 'Signed document 2A'
+    params = {user_id: UID, password: 'test password!', data: data, subject: subject, mime: 'text/plain'}
+    path = '/content/smime_data'
+    @requester.make_request :post, params, path
     @requester.code.should == SecureApi::Response::OK
+    j =  JSON.parse @requester.body
+    j['smime'].should_not be_nil
+    puts j['smime']
+    
+    File.write '/tmp/smime-2a.p7m',j['smime']
+  end  
 
-    # Test before filter
-    params = {username: 'bob', opt1: 'this', opt2: 'more'}
-    @requester.make_request :get, params, path, nil    
-    @requester.code.should == SecureApi::Response::NOT_FOUND
+  it "should create a new user identity " do    
+    params = {user_id: UID2, email: UID2, name_first: "bob", name_last: "smith", org: 'testme co', dept: 'IT', city: 'Providence', state: 'Rhode Island', country: 'US'}
+    path = '/identities/create'
+    @requester.make_request :post, params, path
+    @requester.code.should == SecureApi::Response::OK
+    puts @requester.body    
+  end  
 
-    # Test after filter
-    params = {username: 'phil', password: 'not secret', opt1: 'this', opt2: 'more'}
-    @requester.make_request :get, params, path, nil    
-    @requester.code.should == SecureApi::Response::BAD_REQUEST
-    
-    # Post posting a request
-    params = {username: 'phil', password: 'hello phil', opt1: 'this', opt2: 'more', opt3: 'go for it'}
-    path = '/controller2/action1'    
-    @requester.make_request :post, params, path, nil    
-    @requester.body.should == "{\"posted\":\"POSTED!\",\"opt1\":\"this\",\"opt2\":\"more\",\"opt3\":\"go for it\"}"
+  it "should generate new keys" do    
+    params = {user_id: UID2, password: 'secret password!'}
+    path = '/identities/generate_keys'
+    @requester.make_request :post, params, path
     @requester.code.should == SecureApi::Response::OK
-  end
+    j =  JSON.parse @requester.body       
+  end       
 
-  it "should test timeouts " do    
-    path = '/admin/status'
-    options = {}
-    options[:force_timestamp] = @requester.millisec_timestamp    
-    params = {}
-    
-    @requester.make_request :get, params, path, nil, options    
+  it "should s/mime some HTML data" do
+    data = "<h2>This is some data.</h2><p>This should be a nice signed document.</p><p>Looks good, right?</p>"
+    subject = 'Signed html document'
+    params = {user_id: UID2, password: 'secret password!', data: data, subject: subject, mime: 'text/html'}
+    path = '/content/smime_data'
+    @requester.make_request :post, params, path
     @requester.code.should == SecureApi::Response::OK
+    j =  JSON.parse @requester.body
+    j['smime'].should_not be_nil
+    puts j['smime']
     
-    # Test status with sleep in it    
-    sleep 6
-    @requester.make_request :get, params, path, nil, options    
-    @requester.code.should == SecureApi::Response::TOKEN_TIMEOUT 
-    
-    
-    @requester.make_request :get, params, path, nil
-    @requester.code.should == SecureApi::Response::OK
-    
-  end
+    File.write '/tmp/smime-3.p7m',j['smime']
+  end  
 end
 

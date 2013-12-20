@@ -126,7 +126,11 @@ module SecureApi
             end
           end
           
-          Log.info "Response: #{res.inspect}"
+          if res[:content_type]=='text/json'
+            Log.info "Response: #{res.to_json}" 
+          else
+            Log.info "Response: #{res}" 
+          end
           send_response res        
 
         rescue => e

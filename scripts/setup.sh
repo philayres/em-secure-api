@@ -9,14 +9,14 @@ mkdir ./log
 echo Enter your mysql password for user $1
 mysql -u $1 -p < ./db/setup_db.sql
 ruby -r "./lib/helpers/config_manager.rb" -e "ConfigManager.create_database_config('utf8','mysql2',
-         're_svc_records', # db name
-         'gen_api', #db username
+         're_svc_identities', # db name
+         'gen_api_ids', #db username
          'ja89jh',  #db password
          { directories: {
            log: './log' # log file location (relative to base directory, or full path)
          }, 
          server: {
-           port: 5501,  # port to run the server on
+           port: 5502,  # port to run the server on
            request_timeout: {  # max time between timestamp and current time (in ms)
               __default: 30000,   # default for all requests
               controller1: {

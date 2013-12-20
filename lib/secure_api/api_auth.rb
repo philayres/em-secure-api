@@ -38,7 +38,7 @@ module SecureApi
      
       unless (otgenval == nonce)          
         
-        KeepBusy.logger.info "Details: #{method}, #{headers.inspect}, #{params.inspect}, #{action}, #{controller}, #{options.inspect}====#{otgenval}!=#{nonce}"
+        Identities.logger.info "Details: #{method}, #{headers.inspect}, #{params.inspect}, #{action}, #{controller}, #{options.inspect}====#{otgenval}!=#{nonce}"
         
         throw :not_authorized_request, {:status=>Response::NOT_AUTHORIZED, :content_type=>Response::TEXT ,:content=>"ottoken does not match"} 
       end

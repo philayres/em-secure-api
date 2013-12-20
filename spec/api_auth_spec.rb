@@ -1,6 +1,6 @@
 require 'rspec'
 $testing = true
-#require File.expand_path(File.join(File.dirname(__FILE__), %w[.. lib em_server]))
+
 REQ = File.expand_path('./lib')
 require "#{REQ}/em_server"
 require "#{REQ}/secure_api/api_auth"

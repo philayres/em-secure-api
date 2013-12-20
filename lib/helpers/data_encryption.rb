@@ -3,7 +3,7 @@ require 'openssl'
 class DataEncryption
   
   def self.ivsalt
-    "akjsdf89ujomcerfk^%$^Tuiyhhiunyhn904[[[[^!231n40c9cn2umio~%^78yniuinioh987x342193"
+      "akjsdf89ujomcerfk^%$^Tuiyhhjkgutuy8756876k 87KJHGTYRF\"!hiunyhn904[[[[^!231n40c9cn2umio~%^78yniuinioh987x342193"
   end
 #  def self.generate_dn entity
 #    
@@ -20,6 +20,10 @@ class DataEncryption
     raise "No object key provided" if objkey.nil? || objkey.empty?
     raise "No object key salt provided" if salt.nil? || salt.empty?
     
+      data = data.dup
+      objkey = objkey.dup
+      salt = salt.dup
+
     cipher = OpenSSL::Cipher::Cipher.new('aes-256-cbc')    
     key = OpenSSL::PKCS5.pbkdf2_hmac_sha1(objkey, salt, 20000, 256)
     iv = OpenSSL::Digest::SHA256.digest(objkey << ivsalt)     
@@ -40,6 +44,10 @@ class DataEncryption
     raise "No data provided to encrypt" if data.nil? || data.empty?
     raise "No object key provided" if objkey.nil? || objkey.empty?
     raise "No object key salt provided" if salt.nil? || salt.empty?
+
+      data = data.dup
+      objkey = objkey.dup
+      salt = salt.dup    
 
     if extras[:base64_data]==true
       data = Base64.decode64(data)
