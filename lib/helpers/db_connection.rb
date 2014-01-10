@@ -14,6 +14,7 @@ module Database
 
     def self.connect config
       config[:cast_booleans] = true unless config.has_key?(:cast_booleans)
+      config[:reconnect] = true unless config.has_key?(:reconnect)
       DbConnection.new(config).connection
     end
 
@@ -61,13 +62,13 @@ module Database
   end
   
   def self.handle_mysql_error e
-    if e.sql_state.to_s=='closed MySQL connection' || e.sql_state.to_s == 'MySQL server has gone away'                         
+    if e.error_number == 2006 || e.message=='closed MySQL connection' || e.message == 'MySQL server has gone away'                         
       Log.info "SQL Connection was closed. Restarting"
       DBP[:pool].shutdown rescue nil
       DBP[:pool] = create_new_pool
       return nil
     else
-      Log.info "SQL Connection error unknown: #{e.error_number} / #{e.sql_state} == #{e.inspect}"
+      Log.info "SQL Connection error unknown: #{e.error_number} / #{e.message} == #{e.inspect}"
       return nil
     end
   end

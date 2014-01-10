@@ -1,6 +1,7 @@
 create database re_svc_records character set utf8 collate utf8_unicode_ci ;
 create user gen_api@localhost identified by 'ja89jh';
 grant all on re_svc_records.* to gen_api@localhost;
+connect re_svc_records
 
 CREATE TABLE clients(
   id INT NOT NULL AUTO_INCREMENT,
