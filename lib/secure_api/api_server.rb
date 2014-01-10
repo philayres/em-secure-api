@@ -19,7 +19,7 @@ module SecureApi
       
       EM.run{
         puts DateTime.now.to_s + " Start em-server-api with Ruby version #{RUBY_VERSION} on port #{port}\n"
-        EM.start_server '127.0.0.1', port, SecureApi::ApiServer
+        EM.start_server BIND_IP, port, SecureApi::ApiServer
         puts DateTime.now.to_s + " Started em-server-api\n"
       }
 
