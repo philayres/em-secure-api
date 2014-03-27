@@ -169,8 +169,10 @@ module SecureApi
       res[:content] = res[:content].to_json if res[:content_type]==Response::JSON && res[:content]
       response.status = res[:status]
       response.content_type res[:content_type]
-      response.content = res[:content]
-      #response.send_response
+      
+      content = res[:content]
+      content.force_encoding(Encoding::ASCII_8BIT) if content
+      response.content = content
     end
 
 
