@@ -170,6 +170,13 @@ requests. The Ruby @requester.make_request method creates them automatically and
 The code for the creation of the one-time secure token is easy to translate to other
 languages too.
 
+NOTE: the option to use a URL parameter for the one time token is available. Set the constant `CONFIG_USE_NONCE_PARAM = 'ottoken'`
+and rather than checking the header, the URL parameter `ottoken` will be used instead. This is a Base64 encoded representation (final \n removed)
+of the standard token, allowing it to be cleanly passed in GET URLs.
+
+Why? Maybe you want to provide browser-based access to resources, where the ottoken is generated on the server and has just a short lifespan. For example,
+we are using this to retrieve and unencrypt files stored on a cloud service, without getting in the main line of our Ruby on Rails app, taking load off everything.
+
 
 Implementing your API
 ------------------
