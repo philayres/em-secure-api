@@ -467,14 +467,36 @@ the process IDs yourself for killing the services.
 Creating an EM server as a Linux Upstart service
 ------------------
 
+The following script will setup a specific user (with the name of the service) for running the secure service. Note
+that you may have to also set the appropriate permissions on your log file directory to allow this to work.
 
-    description     "EM Server"
-    start on (starting network-interface
-     or starting network-manager
-     or starting networking)
-    stop on runlevel [!2345]
-    exec {installation directory}/start_em_service_upstart.sh
-    respawn
+    sudo -i
+
+    SVC=em-secure-api
+    adduser $SVC --system
+    usermod -a  -G re_services $SVC
+    chown --recursive $SVC:$SVCGRP $BASEDIR/$SVC
+    chmod --recursive 660 $BASEDIR/$SVC
+    chmod 550 $BASEDIR/$SVC/lib/start_em_service_upstart.sh
+    chmod 550 $BASEDIR/$SVC/scripts/*
+    cat > /etc/init/$SVC.conf <<EOF
+        description     "EM Server"
+        start on (starting network-interface
+         or starting network-manager
+         or starting networking)
+        stop on runlevel [!2345]
+        setuid $SVC
+        exec $BASEDIR/$SVC/lib/start_em_service_upstart.sh
+        respawn
+    EOF
+
+    initctl reload-configuration
+
+    exit
+
+When you are ready, you can start and stop the service with:
+
+    sudo service em-secure-api start|stop|restart
 
 
 License for em-secure-api
