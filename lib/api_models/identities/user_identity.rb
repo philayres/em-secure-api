@@ -67,6 +67,13 @@ module Identities
     def get_certificate options={}
       res = current_user_keys.certificate
       res = "#{res}#{ElectronicSignature::CA_CERT_PEM}" if options[:chain]
+      return OpenSSL::X509::Certificate.new(res)if options[:x509]
+      res
+    end
+    
+    def get_root_certificate options={}
+      res = ElectronicSignature::CA_CERT_PEM
+      return OpenSSL::X509::Certificate.new(res)if options[:x509]
       res
     end
     

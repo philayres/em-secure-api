@@ -1,3 +1,10 @@
+require 'rspec'
+$testing = true
+#require File.expand_path(File.join(File.dirname(__FILE__), %w[.. lib em_server]))
+REQ = File.expand_path('./lib')
+require "#{REQ}/em_server"
+require "#{REQ}/secure_api/api_auth"
+
 $baseurl = 'localhost'
 $port = Port
 $server = "http://#{$baseurl}:#{$port}"
@@ -127,6 +134,8 @@ describe '/identities' do
        
   end     
   
+  
+  
   it "should s/mime some data with regenerated keys" do
     data = "This is some data.\nThis should be a nice signed document."
     subject = 'Signed document 2'
@@ -183,6 +192,25 @@ describe '/identities' do
     puts j['smime']
     
     File.write '/tmp/smime-3.p7m',j['smime']
+  end  
+  
+  it "should sign a PDF document" do
+    data = File.open("./testfiles/terms_agreement.pdf",  encoding: 'utf-8')
+    subject = 'Signed PDF document'
+    params = {user_id: UID2, password: 'secret password!', reason: subject, x_pos: "69.0", y_pos: "300.5", page: '7' }
+    path = '/content/sign_pdf'
+    
+    @requester.make_request :post, params, path, nil, optional_params: {file: data}
+    @requester.code.should == SecureApi::Response::OK
+    j =  @requester.body
+    puts j
+    
+    tempfile = Tempfile.new ['test', '.pdf']
+    res = tempfile.write j  #, encoding: 'utf-8'
+    tf = tempfile.path
+    puts j
+    puts tf
+    `evince #{tf}`
   end  
 end
 

@@ -64,17 +64,19 @@ module Identities
         res = Database.transaction do |db|
           sql = "UPDATE #{table_name} SET                     
             active_until = '#{Database.at_value}' WHERE id = #{ukid}"
-          db.query sql
+          Log.info "SQL: #{sql}"
+          db.query sql          
           Log.info "Deactivated key record with ID: #{ukid}"
           sql = "INSERT INTO #{table_name} (user_id, user_uid, private_key, public_key, certificate)
             values (#{@user_id}, '#{@user_uid}', '#{Database.escape private_key}', '#{Database.escape @public_key}',
             '#{Database.escape @certificate}')"
-          resid = db.query sql
+          Log.info "SQL: #{sql}"
+          resid = db.query sql          
           Log.info "Created key record with ID: #{db.last_id}"
           sql = "UPDATE active_#{table_name} SET user_key_id = '#{db.last_id}' WHERE user_key_id = #{ukid}"          
           Log.info "Attempting to activate new record: #{sql}"
-          db.query sql
-          
+          Log.info "SQL: #{sql}"
+          db.query sql          
         end
       end
       

@@ -18,7 +18,8 @@ module SecureApi
           certificate_get: {params: {}}
         },
         content: {
-          smime_data_post: {params: {user_id: :req, password: :req, data: :req, mime_type: :opt, subject: :req } }
+          smime_data_post: {params: {user_id: :req, password: :req, data: :req, mime_type: :opt, subject: :req } },
+          sign_pdf_post: {params: {user_id: :req, password: :req, caption: :opt, reason: :opt, x_pos: :req, y_pos: :req, page: :req  } }
         },
         admin: {
           status_get: {}
@@ -49,7 +50,14 @@ module SecureApi
     end
     
     def identities_create_post
-      @user_identity = Identities::UserIdentity.new params[:user_id]
+      
+      @user_identity = Identities::UserIdentity.find_by user_id: params[:user_id]
+      unless @user_identity 
+        @user_identity = Identities::UserIdentity.new params[:user_id] 
+      else
+        Log.info "Existing identity found (#{@user_identity.id}) - replacing it"
+      end
+      
       set_identity_params params
       
       if @user_identity.save
@@ -147,6 +155,34 @@ module SecureApi
             
     end
 
+    def content_sign_pdf_post
+      @user_identity = Identities::UserIdentity.find_by find_by_conditions
+      
+      if @user_identity
+        
+        #res = Identities::ElectronicSignature.smime_data params[:data], @user_identity, params[:password], params[:subject], mime
+        spd = SignPDF.new @user_identity, params[:password]
+        
+        tmpfile = Tempfile.new ["re_svc_identities_pdfsign", '.pdf']
+        
+        spd.in_filename = params[:file][:tempfile].path
+        spd.out_filename = tmpfile.path        
+        
+        x_pos = params[:x_pos].to_f
+        y_pos = params[:y_pos].to_f
+        page = params[:page].to_i  
+        
+        spd.sign x_pos: x_pos, y_pos: y_pos, page: page, reason: params[:reason], caption: params[:caption]
+        
+        tmpfile.rewind
+        
+        set_response  status: Response::OK , content_type: 'application/pdf', content: tmpfile.read
+        tmpfile.close true
+      else
+        set_response  status: Response::NOT_FOUND , content_type: Response::JSON, content: {}
+      end
+                  
+    end
 
 
     def admin_status_get

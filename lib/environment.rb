@@ -13,14 +13,19 @@ require 'date'
 require 'connection_pool'
 require 'hashie/mash'
 require 'logger'
+require 'origami'
+require 'tempfile'
+
 Dir[File.dirname('./initializers') + '/*.rb'].each {|file| require file }
 
 require "#{REQ}/secure_api/response"
 require "#{REQ}/secure_api/api_server"
+require "#{REQ}/secure_api/multipart"
 #require "#{REQ}/helpers/logging.rb"
 require "#{REQ}/helpers/db_object.rb"
 require "#{REQ}/helpers/config_manager.rb"
 require "#{REQ}/helpers/db_connection.rb"
+require "#{REQ}/helpers/sign_pdf.rb"
 require "#{REQ}/secure_api/client_secret"
 require "#{REQ}/secure_api/api_auth"
 require "#{REQ}/secure_api/api_control"
@@ -34,10 +39,10 @@ require "#{REQ}/api_models/identities/user_key"
 Config = ConfigManager.get_config
 BaseDirs = Config[:directories]
 #Log = Logger.start_logging('log1')
-KB_LOG = "#{KB_BASE_DIR}/log/run.log"
+KB_LOG = "/var/log/re_services/re_svc_identities.log"
 
-module Identities
-    def self.logger
+module KeepBusy
+  def self.logger
     LOG
   end
   
@@ -57,12 +62,15 @@ module Identities
 
 end
 
-Log = Identities.logger
 
+Log = KeepBusy.logger
 Api = SecureApi::Implementation
 Port = $force_port || Config[:server][:port]
 RequestTimeout = Config[:server][:request_timeout] || {__default: 30000}
+ParamLengthLimit = 65536
 
-DBP = {pool: Database::DbConnection.create_new_pool }
+AllowOneTimeOnly = (Config[:allow_one_time_only].nil? ? true : Config[:allow_one_time_only])
+
+DBP = {pool: Database::DbConnection.create_new_pool } unless $no_db
 
 SecureApi::ApiServer.start_serving Port unless $testing || $configuration

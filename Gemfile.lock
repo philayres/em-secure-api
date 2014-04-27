@@ -1,22 +1,33 @@
+GIT
+  remote: https://github.com/philayres/evma_httpserver.git
+  revision: ee266044bd181dcd9ed6def3b77dd16293964032
+  specs:
+    eventmachine_httpserver (0.2.2.1)
+
+GIT
+  remote: https://github.com/philayres/httpclient.git
+  revision: d8366779b2488949eeb4fa54158c2d639f35b31e
+  specs:
+    httpclient (2.3.4.1.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
-    connection_pool (1.1.0)
+    connection_pool (2.0.0)
     diff-lcs (1.2.5)
     eventmachine (1.0.3)
-    eventmachine_httpserver (0.2.1)
     hashie (2.0.5)
-    httpclient (2.3.4.1)
     logger (1.2.8)
-    mysql2 (0.3.14)
+    mysql2 (0.3.15)
+    origami (1.2.6)
     rspec (2.14.1)
       rspec-core (~> 2.14.0)
       rspec-expectations (~> 2.14.0)
       rspec-mocks (~> 2.14.0)
     rspec-core (2.14.7)
-    rspec-expectations (2.14.4)
+    rspec-expectations (2.14.5)
       diff-lcs (>= 1.1.3, < 2.0)
-    rspec-mocks (2.14.4)
+    rspec-mocks (2.14.6)
 
 PLATFORMS
   ruby
@@ -24,9 +35,10 @@ PLATFORMS
 DEPENDENCIES
   connection_pool
   eventmachine
-  eventmachine_httpserver
+  eventmachine_httpserver!
   hashie
-  httpclient
+  httpclient!
   logger
   mysql2
+  origami
   rspec

@@ -32,6 +32,9 @@ class DbObject
       obj.send("#{k}=".to_sym, v) # unless k.to_sym == :uid || k.to_sym == :id
     end      
     obj.is_new = false
+    
+    Log.info "Hash for (#{obj.id}) is: #{h.inspect}"
+    
     obj
   end
 
@@ -39,8 +42,12 @@ class DbObject
     Log.debug "Save #{is_new ? 'new' : 'existing'} record #{@uid} or #{@id}"      
     options={}
     res = Database.query save_sql, options
-    @id = options[:last_id] if options[:last_id]
-    Log.info "Failed SQL: #{save_sql}\n#{res}" unless res      
+    if res
+      @id = options[:last_id] if options[:last_id] && is_new
+      @is_new = false
+    else
+      Log.info "Failed SQL: #{save_sql}\n#{res}"      
+    end
     res
   end
 

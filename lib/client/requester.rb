@@ -54,7 +54,9 @@ module ReSvcClient
       
       httpmethod = method.downcase.to_sym      
       url = "#{server}#{path}"
-            
+      
+      params.merge!(options[:optional_params]) if options[:optional_params]
+      
       res = httpclient.send(httpmethod, url, params, header)
       @result = res            
       if res && res.body && !res.body.empty?
