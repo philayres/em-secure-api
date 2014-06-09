@@ -391,7 +391,7 @@ Then run the command below, which creates and encrypts the config.
          }  } )"
 
 
-In previous versions we of em_server the psuedo random key used to encrypt the configuration was stored into `/dev/shm`. Although this RAM storage might offer a a little security
+In previous versions of em_server the psuedo random key used to encrypt the configuration was stored into `/dev/shm`. Although this RAM storage might offer a a little security
 enhancement, the changes required to permissions to access this on distros like Ubuntu Server seemed to outweigh the benefits. Now, the config file key
 is placed in the more standard location `/etc/em_server/`. The location of this key can be changed by editing `lib/initializers/config_manager_config.rb`, so you can use '/dev/shm' or some other more obscure location (or presumably a network server) if you prefer.
 
