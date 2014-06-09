@@ -56,7 +56,7 @@ Log = KeepBusy.logger
 Api = SecureApi::Implementation
 Port = $force_port || Config[:server][:port]
 RequestTimeout = Config[:server][:request_timeout] || {__default: 30000}
-ParamLengthLimit = 65536
+ParamLengthLimit = 165536
 
 AllowOneTimeOnly = (Config[:allow_one_time_only].nil? ? true : Config[:allow_one_time_only])
 

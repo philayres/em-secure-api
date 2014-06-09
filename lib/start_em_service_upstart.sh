@@ -1,6 +1,6 @@
 #!/bin/bash
 SVC=em-secure-api
-BASEHOME=/home/vagrant
+BASEHOME=/home/repse
 
 BASEDIR=$BASEHOME/install-dir/$SVC
 

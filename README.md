@@ -61,7 +61,7 @@ source by download the package (or clone the Git repo locally).
 
 cd to the directory then run 
 
-    ./script/setup.sh root
+    ./scripts/setup.sh root
 
 (replace root with your mySQL admin username if necessary)
 
@@ -363,9 +363,9 @@ To setup the configuration file:
 The initial installation creates a database and user with default password. If you change the 
 username or password of this database user, you'll need to reconfigure the config.yml file.
 
-Since the config is encrypted, use the following script to do it.Edit the following 
+Since the config is encrypted, use the following script to do it. Edit the following 
 script for the log file directory to match and select the port to 
-run the EM server.The database user name is gen_api and password ja89jh in the initial script.
+run the EM server. The database user name is gen_api and password ja89jh in the initial script.
 
 Then run the command below, which creates and encrypts the config.
 
@@ -391,23 +391,9 @@ Then run the command below, which creates and encrypts the config.
          }  } )"
 
 
-Then `sudo crontab -e`
-copy the text returned by the above script into the following string and paste at the top of the crontab:
-
-    @reboot /bin/echo -e 'text goes here' > /dev/shm/.re_keys.general_api
-
-This will replace your config on every reboot.
-
-
-For Ubuntu, and possibly others that don't recognize @reboot in the crontab, create `/etc/init.d/reweb`
-
-    /bin/echo -e '#{yk.gsub("\n","\\n")}' > /dev/shm/.re_keys.objstore
-    
-Then run the command 
-
-    sudo update-rc.d reweb defaults
-
-The short config script will then run as a service on every startup.
+In previous versions we of em_server the psuedo random key used to encrypt the configuration was stored into `/dev/shm`. Although this RAM storage might offer a a little security
+enhancement, the changes required to permissions to access this on distros like Ubuntu Server seemed to outweigh the benefits. Now, the config file key
+is placed in the more standard location `/etc/em_server/`. The location of this key can be changed by editing `lib/initializers/config_manager_config.rb`, so you can use '/dev/shm' or some other more obscure location (or presumably a network server) if you prefer.
 
 
 Adding clients to the authorized list
