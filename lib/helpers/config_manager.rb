@@ -53,6 +53,7 @@ class ConfigManager
     
     yk = keyc.to_yaml
     
+    FileUtils.mkdir CONFIG_FILE_KEYS_DIR
     f = File.open(key_filename, 'wb').write(yk)
     
     puts "
