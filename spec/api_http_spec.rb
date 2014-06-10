@@ -127,6 +127,51 @@ describe '/controller1' do
     @requester.body.should == "{\"posted\":\"POSTED!\",\"opt1\":\"this\",\"opt2\":\"more\",\"opt3\":\"go for it\"}"
     @requester.code.should == SecureApi::Response::OK
   end
+#joshs test
+ it "action 2 before filter should fail with the wrong persons username controller2" do    
+
+    opt = {}
+    
+    # Test action2 processes correctly with its before and after handlers
+    path = '/controller2/action2'
+    params = {username: 'david', opt1: 'this', opt2: 'more'}
+        
+    @requester.make_request :get, params, path, nil    
+    @requester.code.should == SecureApi::Response::NOT_FOUND
+
+  end
+ it "action 2 fter filter should fail with the wrong persons password controller2" do    
+
+    opt = {}
+    
+    # Test action2 processes correctly with its before and after handlers
+    path = '/controller2/action2'
+    params = {username: 'phil', password: 'not secret', opt1: 'this', opt2: 'more'}
+    @requester.make_request :get, params, path, nil    
+    @requester.code.should == SecureApi::Response::BAD_REQUEST
+
+  end
+ it "action 1 should post upon a successful login" do 
+    opt = {}
+    
+    params = {username: 'phil', password: 'hello phil', opt1: 'this', opt2: 'more', opt3: 'go for it'}
+    path = '/controller2/action1'    
+    @requester.make_request :post, params, path, nil    
+    @requester.body.should == "{\"posted\":\"POSTED!\",\"opt1\":\"this\",\"opt2\":\"more\",\"opt3\":\"go for it\"}"
+    @requester.code.should == SecureApi::Response::OK
+  end
+
+  it "action 4 should post upon a successful login" do 
+    opt = {}
+    
+    params = {username: 'phil', password: 'hello phil', opt1: 'this', opt2: 'more', opt3: 'go for it'}
+    path = '/controller2/action4'    
+    @requester.make_request :post, params, path, nil    
+    @requester.body.should == "{\"posted\":\"POSTED!\",\"opt1\":\"this\",\"opt2\":\"more\",\"opt3\":\"go for it\"}"
+    @requester.code.should == SecureApi::Response::OK
+  end
+
+  #josh test end
 
   it "should test timeouts " do    
     path = '/admin/status'

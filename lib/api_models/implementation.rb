@@ -19,7 +19,8 @@ module SecureApi
           action1_post: {params: {opt1: :req, opt2: :opt, opt3: :req } },
           action2_get: {params: {opt1: :req, opt2: :req } },      
           action3_get: {params: {} },
-          action3_post: {}
+          action3_post: {},
+          action4_post: {params: {opt1: :req, opt2: :opt, opt3: :req }}
         },
         admin: {
           status_get: {}
@@ -59,6 +60,10 @@ module SecureApi
 
     def controller2_action3_post
 
+    end
+
+    def controller2_action4_post
+      set_response  status: Response::OK , content_type: Response::JSON, content: {posted: "POSTED!", opt1: params[:opt1], opt2: params[:opt2], opt3: params[:opt3]} 
     end
 
     def admin_status_get
