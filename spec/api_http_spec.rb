@@ -99,26 +99,26 @@ describe '/controller1' do
 
 
 #joshs test
- # it "action 2 before filter should fail with the wrong persons username controller2" do    
- #    opt = {}
+  it "action 2 before filter should fail without persons username controller2" do    
+     opt = {}
     
- #    # Test action2 processes correctly with its before and after handlers
- #    path = '/controller2/action2'
- #    params = {username: 'david', opt1: 'this', opt2: 'more'}     
- #    @requester.make_request :get, params, path, nil    
- #    @requester.code.should == SecureApi::Response::NOT_FOUND
+     # Test action2 processes correctly with its before and after handlers
+     path = '/controller2/action2'
+     params = {username: '', opt1: 'this', opt2: 'more'}     
+     @requester.make_request :get, params, path, nil    
+     @requester.code.should == SecureApi::Response::NOT_FOUND
 
- #  end
- # it "action 2 after filter should fail with the wrong persons password controller2" do    
- #    opt = {}
+   end
+  it "action 2 after filter should fail without  persons password controller2" do    
+     opt = {}
     
- #    # Test action2 processes correctly with its before and after handlers
- #    path = '/controller2/action2'
- #    params = {username: 'phil', password: 'not secret', opt1: 'this', opt2: 'more'}
- #    @requester.make_request :get, params, path, nil    
- #    @requester.code.should == SecureApi::Response::BAD_REQUEST
+     # Test action2 processes correctly with its before and after handlers
+     path = '/controller2/action2'
+     params = {username: 'phil', password: '', opt1: 'this', opt2: 'more'}
+     @requester.make_request :get, params, path, nil    
+     @requester.code.should == SecureApi::Response::BAD_REQUEST
 
- #  end
+  end
  it "action 1 should post upon a successful login" do 
     opt = {}
     
