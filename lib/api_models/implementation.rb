@@ -19,7 +19,9 @@ module SecureApi
           action1_post: {params: {opt1: :req, opt2: :opt, opt3: :req } },
           action2_get: {params: {opt1: :req, opt2: :req } },      
           action3_get: {params: {} },
-          action3_post: {}
+          action3_post: {},
+          action4_post: {params: {opt1: :req, opt2: :opt, opt3: :req } },
+          action5_post: {params: {opt1: :opt, opt2: :opt, opt3: :opt}}
         },
         admin: {
           status_get: {}
@@ -61,18 +63,26 @@ module SecureApi
 
     end
 
+    def controller2_action4_post
+      set_response  status: Response::OK , content_type: Response::JSON, content: {posted: "POSTED!", opt1: params[:opt1], opt2: params[:opt2], opt3: params[:opt3]} 
+    end
+
+    def controller2_action5_post
+      set_response  status: Response::OK , content_type: Response::JSON, content: {posted: "POSTED!", opt1: params[:opt1], opt2: params[:opt2], opt3: params[:opt3]} 
+    end
+
     def admin_status_get
       set_response status: Response::OK, content_type: Response::JSON, content: {} 
     end
 
     def before_controller2_get
-      if params[:username] != 'phil'
+      if params[:username] == ''
         throw :not_processed_request, {status: Response::NOT_FOUND, content_type: Response::TEXT , content: "no such record"}
       end      
     end
 
     def after_controller2_all
-      if params[:password] == 'not secret'        
+      if params[:password] == ''        
         throw :request_exit, {status: Response::BAD_REQUEST, content_type: Response::TEXT, content: 'This password is not secret.'}
       end      
     end
