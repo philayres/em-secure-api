@@ -1,4 +1,5 @@
 require 'yaml'
+require 'fileutils' 
 unless defined? REQ
   REQ = File.expand_path('./lib')  
 end
