@@ -1,6 +1,7 @@
 DEBUG = true
 Encoding.default_external = Encoding::UTF_8
 
+require 'fileutils' 
 require 'rubygems'
 require 'json'
 require 'eventmachine'
