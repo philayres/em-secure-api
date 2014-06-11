@@ -98,35 +98,58 @@ describe '/controller1' do
   end
 
 
-  it "should exercise controller2 successfully" do    
+#joshs test
+  it "action 2 before filter should fail without persons username controller2" do    
+     opt = {}
+    
+     # Test action2 processes correctly with its before and after handlers
+     path = '/controller2/action2'
+     params = {username: '', opt1: 'this', opt2: 'more'}     
+     @requester.make_request :get, params, path, nil    
+     @requester.code.should == SecureApi::Response::NOT_FOUND
 
+   end
+  it "action 2 after filter should fail without  persons password controller2" do    
+     opt = {}
+    
+     # Test action2 processes correctly with its before and after handlers
+     path = '/controller2/action2'
+     params = {username: 'phil', password: '', opt1: 'this', opt2: 'more'}
+     @requester.make_request :get, params, path, nil    
+     @requester.code.should == SecureApi::Response::BAD_REQUEST
+
+  end
+ it "action 1 should post upon a successful login" do 
     opt = {}
     
-    # Test action2 processes correctly with its before and after handlers
-    path = '/controller2/action2'
-    params = {username: 'phil', password: 'hello phil', opt1: 'this', opt2: 'more'}
-    
-    @requester.make_request :get, params, path, nil    
-    @requester.body.should == "{\"opt1\":\"this\",\"opt2\":\"more\",\"username\":\"phil\"}"
-    @requester.code.should == SecureApi::Response::OK
-
-    # Test before filter
-    params = {username: 'bob', opt1: 'this', opt2: 'more'}
-    @requester.make_request :get, params, path, nil    
-    @requester.code.should == SecureApi::Response::NOT_FOUND
-
-    # Test after filter
-    params = {username: 'phil', password: 'not secret', opt1: 'this', opt2: 'more'}
-    @requester.make_request :get, params, path, nil    
-    @requester.code.should == SecureApi::Response::BAD_REQUEST
-    
-    # Post posting a request
     params = {username: 'phil', password: 'hello phil', opt1: 'this', opt2: 'more', opt3: 'go for it'}
     path = '/controller2/action1'    
     @requester.make_request :post, params, path, nil    
     @requester.body.should == "{\"posted\":\"POSTED!\",\"opt1\":\"this\",\"opt2\":\"more\",\"opt3\":\"go for it\"}"
     @requester.code.should == SecureApi::Response::OK
   end
+
+  it "action 4 should post upon a successful login" do 
+    opt = {}
+    
+    params = {username: 'phil', password: 'hello phil', opt1: 'this', opt2: 'more', opt3: 'go for it'}
+    path = '/controller2/action4'    
+    @requester.make_request :post, params, path, nil    
+    @requester.body.should == "{\"posted\":\"POSTED!\",\"opt1\":\"this\",\"opt2\":\"more\",\"opt3\":\"go for it\"}"
+    @requester.code.should == SecureApi::Response::OK
+  end
+#newest test
+  it "should take a required param and a set of arbirary params" do
+    opt = {}
+
+    params = {username: 'any', password: 'anything', opt1: 'my', opt2: 'new', opt3: 'string'}
+    path = '/controller2/action5'
+    @requester.make_request :post, params, path, nil
+    @requester.body.should == "{\"posted\":\"POSTED!\",\"opt1\":\"my\",\"opt2\":\"new\",\"opt3\":\"string\"}"
+    @requester.code.should == SecureApi::Response::OK
+  end
+
+#josh test end
 
   it "should test timeouts " do    
     path = '/admin/status'
@@ -144,8 +167,6 @@ describe '/controller1' do
     
     
     @requester.make_request :get, params, path, nil
-    @requester.code.should == SecureApi::Response::OK
-    
+    @requester.code.should == SecureApi::Response::OK 
   end
 end
-
