@@ -1,4 +1,4 @@
-$baseurl = 'localhost'
+$$baseurl = 'localhost'
 $port = Port
 $server = "http://#{$baseurl}:#{$port}"
 
@@ -138,14 +138,15 @@ describe '/controller1' do
     @requester.body.should == "{\"posted\":\"POSTED!\",\"opt1\":\"this\",\"opt2\":\"more\",\"opt3\":\"go for it\"}"
     @requester.code.should == SecureApi::Response::OK
   end
-#newest test
-  it "should take a required param and a set of arbirary params" do
+
+#other new test
+  it "action 5 should take a required param and not fail without the optional params" do
     opt = {}
 
-    params = {username: 'any', password: 'anything', opt1: 'my', opt2: 'new', opt3: 'string'}
+    params = {username: 'any', password: 'anything', abc_params: 'blah', def_params: 'like'}
     path = '/controller2/action5'
     @requester.make_request :post, params, path, nil
-    @requester.body.should == "{\"posted\":\"POSTED!\",\"opt1\":\"my\",\"opt2\":\"new\",\"opt3\":\"string\"}"
+    @requester.body.should == "{\"abc_params\":\"blah\",\"def_params\":\"like\"}"
     @requester.code.should == SecureApi::Response::OK
   end
 

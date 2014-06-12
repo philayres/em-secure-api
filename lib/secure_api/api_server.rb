@@ -96,34 +96,56 @@ module SecureApi
       from_string = ''
       @request_params = {} 
       puts @http_post_content
-      
+      @url_params = {}
+      @body_params = {}
+
       if method==:post || method==:put 
         if form_data? || parseable_data?           
           io = StringIO.new(@http_post_content, 'rb')          
           io.rewind
           @multipart = SecureApi::Multipart.new content_type, io, content_length
-          from_string << @http_query_string if @http_query_string
-                    
+          #this needs to change
+          from_string << @http_query_string if @http_query_string             
           @multipart.parse
-          
-        else        
-          # Just a simple POSTED form passed
-          from_string << @http_query_string if @http_query_string
-          from_string << @http_post_content if @http_post_content
-        end
-      else  
-        # Just use the GET params
-        from_string << @http_query_string if @http_query_string
-      
-      end
-      
-      
+      #mulpart are all body params
       if @multipart && @multipart.params
         @request_params.merge!(@multipart.params)
+        @body_params = @multipart.params
       end
+      @url_params = @http_query_string
+      else        
+        #move into a new method replace each with a single call to a new method, make local variables and parse through
+          # Just a simple POSTED form passed
+          #http_post can be local
+          if @http_post_content
+          from_string << @http_post_content 
+          param_list = @http_post_content.split('&')
+          @request_params_post_content = {}
+          param_list.each do |p|
+          pp = p.split('=', 2)
+          @request_params_post_content[pp[0].to_sym] = CGI.unescape(pp[1] || '') if pp[0] && !pp[0].empty?
+          #only @url and @body params are only 
+          @url_params = @request_params_post_content
+          end 
+      end
+    end
+      else  
+        # Just use the GET params
+
+        if @http_query_string
+        from_string << @http_query_string
+        param_list = @http_query_string.split('&') 
+
+        @request_params_query_string = {}
+        param_list.each do |p|
+        pp = p.split('=',2)        
+        @request_params_query_string[pp[0].to_sym] = CGI.unescape(pp[1] || '') if pp[0] && !pp[0].empty?
+        @url_params = @request_params_query_string
+        end      
+      end    
+    end
       
       if from_string.empty?
-        
         return {}
       end
       
@@ -131,16 +153,16 @@ module SecureApi
         KeepBusy::log_and_raise "Parameters too long"
       end
 
-      param_list = from_string.split('&')
-      
+      param_list = from_string.split('&')      
       @request_params = {}
       param_list.each do |p|
-        pp = p.split('=',2)        
-        @request_params[pp[0].to_sym] = CGI.unescape(pp[1] || '') if pp[0] && !pp[0].empty?
+      pp = p.split('=',2)        
+      @request_params[pp[0].to_sym] = CGI.unescape(pp[1] || '') if pp[0] && !pp[0].empty?
       end
 
-      
       @request_params
+      puts @url_params
+      puts @body_params
     end   
 
     def authorize_request
