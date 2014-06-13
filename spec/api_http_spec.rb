@@ -1,4 +1,4 @@
-$$baseurl = 'localhost'
+$baseurl = 'localhost'
 $port = Port
 $server = "http://#{$baseurl}:#{$port}"
 
@@ -97,7 +97,16 @@ describe '/controller1' do
     @requester.code.should == SecureApi::Response::NOT_FOUND
   end
 
+end
 
+describe '/controller2' do
+  before(:all) do
+    
+    # clear up first
+    test_client = 'test_client'
+    secret = SecureApi::ClientSecret.create(test_client, :replace_client=>true)
+    @requester = ReSvcClient::Requester.new $server, test_client, secret
+  end
 #joshs test
   it "action 2 before filter should fail without persons username controller2" do    
      opt = {}

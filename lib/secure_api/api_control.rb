@@ -1,7 +1,7 @@
 module SecureApi
   class ApiControl
 
-    def initialize controller, action, method, params
+    def initialize controller, action, method, params, body_params, url_params
       Log.info "Request: controller:#{controller} action:#{action} method:#{method}"
       Log.info "Parameters: #{params.inspect}"
       c = routes[controller.to_sym]
@@ -17,6 +17,8 @@ module SecureApi
       @action = action.to_sym
       @method = method.to_sym
       @params = params
+      @body_params = body_params
+      @url_params = url_params
       @route = a      
       @model_params = c[:__default_parameters] || {}
       @model_params.merge!(a[:params]) if a[:params]
