@@ -95,53 +95,53 @@ module SecureApi
       return @request_params if @request_params      
       from_string = ''
       @request_params = {} 
-      puts @http_post_content
-      
+      @url_params = {}
+      @body_params = {}
+
       if method==:post || method==:put 
         if form_data? || parseable_data?           
           io = StringIO.new(@http_post_content, 'rb')          
-          io.rewind
+          io.rewind   
           @multipart = SecureApi::Multipart.new content_type, io, content_length
-          from_string << @http_query_string if @http_query_string
-                    
+          #this needs to change
+          from_string << @http_query_string if @http_query_string             
           @multipart.parse
-          
-        else        
-          # Just a simple POSTED form passed
-          from_string << @http_query_string if @http_query_string
-          from_string << @http_post_content if @http_post_content
+      #mulpart are all body params
+          if @multipart && @multipart.params
+            @request_params.merge!(@multipart.params)
+            @body_params = @multipart.params
+          end
+      @url_params = @http_query_string
+        else 
+          @url_params = http_content_query_parse(@http_query_string, from_string)       
+          @body_params = http_content_query_parse(@http_post_content, from_string)
         end
       else  
-        # Just use the GET params
-        from_string << @http_query_string if @http_query_string
-      
+        @url_params = http_content_query_parse(@http_query_string, from_string)
       end
-      
-      
-      if @multipart && @multipart.params
-        @request_params.merge!(@multipart.params)
-      end
-      
       if from_string.empty?
-        
         return {}
       end
       
       if from_string.length > ::ParamLengthLimit
         KeepBusy::log_and_raise "Parameters too long"
       end
+      @request_params = @url_params.merge(@body_params)
+   
+    end
 
-      param_list = from_string.split('&')
-      
-      @request_params = {}
-      param_list.each do |p|
-        pp = p.split('=',2)        
-        @request_params[pp[0].to_sym] = CGI.unescape(pp[1] || '') if pp[0] && !pp[0].empty?
+    def http_content_query_parse http_content, from_string
+      request_params_content = {}
+      if http_content 
+        from_string << http_content 
+        param_list = http_content.split('&')
+        param_list.each do |p|
+          pp = p.split('=', 2)
+          request_params_content[pp[0].to_sym] = CGI.unescape(pp[1] || '') if pp[0] && !pp[0].empty?
+        end
       end
-
-      
-      @request_params
-    end   
+      request_params_content
+    end
 
     def authorize_request
 
@@ -191,7 +191,7 @@ module SecureApi
     #        puts "New request: #{@http_request_method} #{@http_request_uri} #{@http_query_string} #{@http_post_content}"        
               res = catch :request_exit do
                 res = catch :not_initialized do
-                  api = Api.new controller, action, method, params
+                  api = Api.new controller, action, method, params, @body_params, @url_params
 
                   res = catch :not_authorized_request do
                     authorize_request

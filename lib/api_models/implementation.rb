@@ -1,4 +1,4 @@
-# A test implementation to allow api_http_spec tests to run and exercise the API
+## A test implementation to allow api_http_spec tests to run and exercise the API
 # It also should make a good skeleton from which to create real implementations
 
 require 'net/http'
@@ -21,7 +21,7 @@ module SecureApi
           action3_get: {params: {} },
           action3_post: {},
           action4_post: {params: {opt1: :req, opt2: :opt, opt3: :req } },
-          action5_post: {params: {opt1: :opt, opt2: :opt, opt3: :opt}}
+          action5_post: {params: {}}
         },
         admin: {
           status_get: {}
@@ -68,7 +68,8 @@ module SecureApi
     end
 
     def controller2_action5_post
-      set_response  status: Response::OK , content_type: Response::JSON, content: {posted: "POSTED!", opt1: params[:opt1], opt2: params[:opt2], opt3: params[:opt3]} 
+      KeepBusy.logger.info params.inspect 
+      set_response  status: Response::OK , content_type: Response::JSON, content: {url_params: @url_params , body_params: @body_params } 
     end
 
     def admin_status_get
