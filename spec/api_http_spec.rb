@@ -155,7 +155,7 @@ describe '/controller2' do
     params = {username: 'any', password: 'anything', abc_params: 'blah', def_params: 'like'}
     path = '/controller2/action5'
     @requester.make_request :post, params, path, nil
-    @requester.body.should == "{\"abc_params\":\"blah\",\"def_params\":\"like\"}"
+    @requester.body.should == "{\"url_params\":{},\"body_params\":{\"username\":\"any\",\"password\":\"anything\",\"abc_params\":\"blah\",\"def_params\":\"like\"}}"
     @requester.code.should == SecureApi::Response::OK
   end
 
