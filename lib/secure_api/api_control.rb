@@ -8,6 +8,7 @@ module SecureApi
       throw :not_initialized, {:status=>Response::NOT_FOUND, :content_type=>Response::TEXT ,:content=>"controller (#{controller}) not found"} unless c
       a = c["#{action}_#{method}".to_sym]
       throw :not_initialized, {:status=>Response::NOT_FOUND, :content_type=>Response::TEXT ,:content=>"action_method (#{action}_#{method}) not found in controller #{controller}"} unless a
+
       @before_all_handler = "before_#{controller}_all".to_sym
       @before_handler = "before_#{controller}_#{method}".to_sym
       @handler = "#{controller}_#{action}_#{method}".to_sym
@@ -36,6 +37,11 @@ module SecureApi
     
     def prevent_after_handlers
       @prevent_after_handlers = false
+    end
+    
+    def self.action_callback c, a, m
+      callback_handler = "callback_#{c}_#{a}_#{m}".to_sym
+      method(callback_handler) if respond_to? callback_handler
     end
     
     def do_request

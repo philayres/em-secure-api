@@ -182,6 +182,9 @@ module SecureApi
           resp = EM::DelegatedHttpResponse.new(self)
           # Use deferred responses, to handle the blocking calls within separate threads
           
+          success_result = nil
+          api = nil
+          
           work  = proc do
             begin                              
 
@@ -203,7 +206,7 @@ module SecureApi
                     end
 
                     api.after_handler
-
+                    puts api
                     res
                   end
 
@@ -214,6 +217,7 @@ module SecureApi
 
               Log.info "Response: #{res[:status]} #{res[:content_type]} #{(res[:content] || '').to_s[0..1000]}"
               send_response res, resp    
+              success_result = res
 
             rescue => e
               if e.is_a?(String)
@@ -234,9 +238,19 @@ module SecureApi
             end
                         
           end
-          
-        callback = proc do
-          resp.send_response
+        
+        ac = Api.action_callback controller, action, method
+        
+        if ac
+          callback = proc do
+            res = ac.call success_result, api
+            send_response res, resp
+            resp.send_response
+          end
+        else
+          callback = proc do
+            resp.send_response
+          end
         end
         
         EM.defer work, callback

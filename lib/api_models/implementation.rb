@@ -21,7 +21,9 @@ module SecureApi
           action3_get: {params: {} },
           action3_post: {},
           action4_post: {params: {opt1: :req, opt2: :opt, opt3: :req } },
-          action5_post: {params: {}}
+          action5_post: {params: {}},
+          action6_post: {params: {}}
+          
         },
         admin: {
           status_get: {}
@@ -70,6 +72,29 @@ module SecureApi
     def controller2_action5_post
       KeepBusy.logger.info params.inspect 
       set_response  status: Response::OK , content_type: Response::JSON, content: {url_params: @url_params , body_params: @body_params } 
+    end
+
+    def controller2_action6_post
+      KeepBusy.logger.info params.inspect 
+      set_response status: Response::BAD_REQUEST , content_type: Response::JSON, content: {ok: "it is not"}
+    end
+    
+    # An example of a callback method definition for the appropriate controller, action, method 
+    # Notice that this is prefixed with self. since it is initially referenced against the class
+    # not an instance of the object.
+    # The arguments passed in provide control:
+    #   result: the original set_response hash as set by the 
+    #           controller_action_method implementation
+    #   api: the Implementation instance that was instantiated during the call
+    #           which can be used to access the original params hash
+    #           and should be used for `api.set_response {...}` similar to the 
+    #           implementation action
+    
+    def self.callback_controller2_action6_post result, api
+      puts "Using alternative callback for #{result} | #{api}"      
+      # Notice the usage: api.set_response ... since we are not inside the Api instance when this method is initially used
+      # We can also use the original `result` from the action implementation (for example, result[:content_type])
+      api.set_response status: Response::OK, content_type: result[:content_type], content: {ok: "it is#{api.params[:a_value]}"}
     end
 
     def admin_status_get
