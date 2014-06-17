@@ -239,20 +239,19 @@ module SecureApi
                         
           end
         
-        ac = Api.action_callback controller, action, method
         
-        if ac
-          callback = proc do
-            res = ac.call success_result, api
-            send_response res, resp
+        
+        callback = proc do
+          ac = Api.action_callback controller, action, method
+          if ac
+            res = ac.call success_result, resp, self
+          else
             resp.send_response
+        
           end
-        else
-          callback = proc do
-            resp.send_response
-          end
+
         end
-        
+
         EM.defer work, callback
     end
   end
