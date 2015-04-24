@@ -7,7 +7,6 @@ if ARGV[0]
 end
 
 KB_BASE_DIR = File.expand_path('.')
-BIND_IP = '127.0.0.1'
 
 REQ = File.expand_path('./lib')
 require "#{REQ}/environment"

@@ -19,6 +19,10 @@ class DataEncryption
     raise "No data provided to encrypt" if data.nil? || data.empty?
     raise "No object key provided" if objkey.nil? || objkey.empty?
     raise "No object key salt provided" if salt.nil? || salt.empty?
+
+    data = data.dup
+    objkey = objkey.dup
+    salt = salt.dup
     
     cipher = OpenSSL::Cipher::Cipher.new('aes-256-cbc')    
     key = OpenSSL::PKCS5.pbkdf2_hmac_sha1(objkey, salt, 20000, 256)
@@ -41,6 +45,10 @@ class DataEncryption
     raise "No object key provided" if objkey.nil? || objkey.empty?
     raise "No object key salt provided" if salt.nil? || salt.empty?
 
+      data = data.dup
+      objkey = objkey.dup
+      salt = salt.dup
+    
     if extras[:base64_data]==true
       data = Base64.decode64(data)
     end
@@ -57,7 +65,7 @@ class DataEncryption
       result2 << cipher.final
       result2  
     rescue => e      
-      raise "ERROR: Failure in unobscure_data: Data is: #{data}\n #{e.inspect} "
+      raise "ERROR: Failure in unobscure_data: Data is: #{data[0..100]}\n #{e.inspect} "
     end
   end  
 

@@ -144,8 +144,7 @@ module SecureApi
           body << @buf.slice!(0, @buf.size - (@boundary_size+4))
         end
 
-        #puts "llll>#{@content_length}"
-        #raise "@content_length < -1 #{@content_length}" if @content_length < -1
+        raise "@content_length < -1 #{@content_length}" if @content_length < -1
         content = @io.read(@content_length && BUFSIZE >= @content_length ? @content_length : BUFSIZE)
         raise EOFError, "bad content body"  if content.nil? || content.empty?
 

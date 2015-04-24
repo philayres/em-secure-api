@@ -3,23 +3,18 @@ module SecureApi
     
     include EM::HttpServer
       
-        # the http request details are available via the following instance variables:
-        #   @http_protocol
-        #   @http_request_method
-        #   @http_cookie
-        #   @http_if_none_match
-        #   @http_content_type
-        #   @http_path_info
-        #   @http_request_uri
-        #   @http_query_string
-        #   @http_post_content
-        #   @http_headers
-
-    def self.start_serving port
+    def self.start_serving port, options=nil
+      
+      options ||= {}
       
       EM.run{
-        puts DateTime.now.to_s + " Start em-server-api with Ruby version #{RUBY_VERSION} on port #{port}\n"
-        EM.start_server BIND_IP, port, SecureApi::ApiServer
+        msg = " Start em-server-api with Ruby version #{RUBY_VERSION} on port #{port} as pid #{$$}\n"
+        puts DateTime.now.to_s + msg
+        KeepBusy.logger.info msg
+        
+        EM.threadpool_size = options[:threads] if options[:threads]
+        
+        EM.start_server '127.0.0.1', port, SecureApi::ApiServer
         puts DateTime.now.to_s + " Started em-server-api\n"
       }
 
@@ -28,6 +23,12 @@ module SecureApi
     def post_init
         super
         no_environment_strings
+       
+       # max length of the POST content
+       self.max_content_length = 100_000_000       
+       
+      puts "Content length max = #{self.max_content_length}"
+      
     end      
     
     def controller
@@ -62,13 +63,12 @@ module SecureApi
     end
     
     def content_length
-      l = headers['content-length'].to_i
-      puts "CONTENT LENGTH: #{l}"
+      l = headers['Content-Length'].to_i     
       l
     end
     
     FORM_DATA_MEDIA_TYPES = [
-      #'application/x-www-form-urlencoded',
+      
       'multipart/form-data'
     ]
     
@@ -99,12 +99,13 @@ module SecureApi
       @body_params = {}
 
       if method==:post || method==:put 
-        if form_data? || parseable_data?           
+        if form_data? || parseable_data?      
+          
           io = StringIO.new(@http_post_content, 'rb')          
-          io.rewind   
+          io.rewind
           @multipart = SecureApi::Multipart.new content_type, io, content_length
-          #this needs to change
-          from_string << @http_query_string if @http_query_string             
+          from_string << @http_query_string if @http_query_string
+                    
           @multipart.parse
       #mulpart are all body params
           if @multipart && @multipart.params
@@ -145,9 +146,7 @@ module SecureApi
 
     def authorize_request
 
-      #secret_obj = ClientSecret.find(params[:client])
-      #throw :not_authorized_request, {:status=>Response::NOT_AUTHORIZED, :content_type=>Response::TEXT ,:content=>"Client not recognized"} unless secret_obj
-      #secret = secret_obj.secret
+
       if defined?(CONFIG_USE_NONCE_PARAM) && CONFIG_USE_NONCE_PARAM && params[CONFIG_USE_NONCE_PARAM]
         pb = Base64.decode64(params[CONFIG_USE_NONCE_PARAM])
         p = JSON.parse(pb)
@@ -161,6 +160,7 @@ module SecureApi
       if defined?(CONFIG_AUTH_PARAMS) && CONFIG_AUTH_PARAMS
         check_params = params.select {|k,v| CONFIG_AUTH_PARAMS.include?(k)}
       end
+      
       
       ApiAuth.validate_ottoken(method, headers, check_params, action, controller, :one_time_only=>AllowOneTimeOnly, :method=>method)        
     end
@@ -177,7 +177,7 @@ module SecureApi
 
 
 
-      def process_http_request
+    def process_http_request
 
           resp = EM::DelegatedHttpResponse.new(self)
           # Use deferred responses, to handle the blocking calls within separate threads
@@ -194,7 +194,7 @@ module SecureApi
     #        puts "New request: #{@http_request_method} #{@http_request_uri} #{@http_query_string} #{@http_post_content}"        
               res = catch :request_exit do
                 res = catch :not_initialized do
-                  api = Api.new controller, action, method, params, @body_params, @url_params
+                  api = Api.new controller, action, method, params, @body_params, @url_params, resp
 
                   res = catch :not_authorized_request do
                     authorize_request

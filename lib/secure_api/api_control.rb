@@ -1,7 +1,7 @@
 module SecureApi
   class ApiControl
 
-    def initialize controller, action, method, params, body_params, url_params
+    def initialize controller, action, method, params, body_params, url_params, resp
       Log.info "Request: controller:#{controller} action:#{action} method:#{method}"
       Log.info "Parameters: #{params.inspect}"
       c = routes[controller.to_sym]
@@ -9,6 +9,7 @@ module SecureApi
       a = c["#{action}_#{method}".to_sym]
       throw :not_initialized, {:status=>Response::NOT_FOUND, :content_type=>Response::TEXT ,:content=>"action_method (#{action}_#{method}) not found in controller #{controller}"} unless a
 
+      @resp = resp
       @before_all_handler = "before_#{controller}_all".to_sym
       @before_handler = "before_#{controller}_#{method}".to_sym
       @handler = "#{controller}_#{action}_#{method}".to_sym
