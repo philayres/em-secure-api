@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'eventmachine'
-gem 'eventmachine_httpserver'
+gem 'eventmachine_httpserver', git: 'https://github.com/philayres/evma_httpserver.git'
 gem 'mysql2'
 gem 'httpclient'
 gem 'hashie'
